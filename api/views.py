@@ -1,13 +1,7 @@
-import os
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.core.files.storage import FileSystemStorage
 from .api_services import save_file
-
-
-def hello(request):
-    return JsonResponse({'message': 'hello'})
 
 
 @csrf_exempt
