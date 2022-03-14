@@ -112,9 +112,11 @@ CORS_ALLOWED_ORIGINS = [
 # CORS_ORIGIN_ALLOW_ALL = True
 
 
-# Media files root
+# Media files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'file')
 MEDIA_URL = '/file/'
+ALLOWED_MEDIA_TYPE = ['xlsx', 'xls']
+UPLOADED_FILE_NAME = 'document'
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
