@@ -134,3 +134,4 @@ GitHub.sublime-settings
 
 # Ignore files
 file/
+test.py

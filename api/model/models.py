@@ -1,6 +1,24 @@
 from django.db import models
 
 
+class Department(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self) -> str:
+        return f"{self.id} {self.name}"
+
+
+class Teacher(models.Model):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    one_rate = models.IntegerField(null=True)
+    load = models.FloatField(null=True)
+    department = models.ForeignKey(
+        Department, null=True, on_delete=models.SET_NULL)
+
+    def __str__(self) -> str:
+        return f"{self.first_name} {self.last_name}"
+
 # class Subject(models.Model):
 #     name = models.CharField(max_length=200)
 #     credits = models.IntegerField()

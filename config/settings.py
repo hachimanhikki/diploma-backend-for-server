@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 import os
 from pathlib import Path
+import enum
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -115,11 +116,31 @@ CORS_ALLOWED_ORIGINS = [
 # Media files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'file')
 MEDIA_URL = '/file/'
-ALLOWED_MEDIA_TYPE = ['xlsx', 'xls']
+ALLOWED_MEDIA_TYPE = ['xlsx']
 UPLOADED_FILE_NAME = 'document'
+
+
+# Departments
+class DepartmentEnum(enum.Enum):
+    computational_and_data_science = "Department of Computational and Data Science"
+    social_sciences = "Department of Social Sciences"
+    computer_engineering = "Department of Computer Engineering"
+    intellectual_systems_and_cybersecurity = "Department of Intellectual systems and cybersecurity"
+
+    def get_id(self) -> int:
+        if self == self.computational_and_data_science:
+            return 1
+        if self == self.social_sciences:
+            return 2
+        if self == self.computer_engineering:
+            return 3
+        if self == self.intellectual_systems_and_cybersecurity:
+            return 4
+        return 0
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
+
 
 LANGUAGE_CODE = 'en-us'
 
