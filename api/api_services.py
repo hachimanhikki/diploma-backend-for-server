@@ -1,18 +1,17 @@
 import os
 from django.conf import settings
-from django.http import JsonResponse
 from django.core.files.storage import FileSystemStorage
+from api.model.error import IncorrectFileType
 
 
-def save_file(file) -> JsonResponse:
+def save_file(file) -> None:
     file_type = _get_file_type(file.name)
     if file_type not in settings.ALLOWED_MEDIA_TYPE:
-        return JsonResponse({'success': False, 'message': 'Incorrect file type'})
+        raise IncorrectFileType
     fs = FileSystemStorage()
-    file_name = f'Формирование потоков.{file_type}'
+    file_name = f'all_data.{file_type}'
     _remove_exists(fs, file_name)
     fs.save(file_name, file)
-    return JsonResponse({'success': True})
 
 
 def _get_file_type(file_name: str) -> str:

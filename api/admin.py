@@ -1,3 +1,5 @@
+from ast import Sub
 from django.contrib import admin
+# from .model.models import Subject
 
-# Register your models here.
+# admin.site.register(Subject)
