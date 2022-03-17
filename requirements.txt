@@ -6,3 +6,4 @@ djangorestframework==3.13.1
 markdown==3.3.6
 django_filter==21.1
 django-cors-headers==3.11.0
+openpyxl==3.0.6
