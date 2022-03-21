@@ -1,3 +1,4 @@
+from statistics import mode
 from django.db import models
 import api.service.functions as functions
 
@@ -52,9 +53,13 @@ class Subject(models.Model):
     office_hour = models.IntegerField(null=True)
     lab_cout = models.IntegerField(null=True)
     total_hour = models.IntegerField(null=True)
+    row_index = models.IntegerField(null=True)
+
     department = models.ForeignKey(
         Department, null=True, on_delete=models.SET_NULL)
     teachers = models.ManyToManyField(Teacher, related_name='subjects')
+    groups = models.ManyToManyField(
+        Group, related_name='subjects', through='GroupSubject')
 
     def __str__(self) -> str:
         return f"{self.name}, {self.credits}"
@@ -82,6 +87,18 @@ class Subject(models.Model):
             sheet.cell(row=row_index, column=20).value)
         self.total_hour = functions.clear_int(
             sheet.cell(row=row_index, column=21).value)
+        self.row_index = row_index
 
     class Meta:
         db_table = 'subject'
+
+
+class GroupSubject(models.Model):
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    group = models.ForeignKey(
+        Group, db_column='group_name', on_delete=models.CASCADE)
+    trimester = models.IntegerField()
+
+    class Meta:
+        db_table = 'group_subject'
+        unique_together = [['subject', 'group']]
