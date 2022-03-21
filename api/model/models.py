@@ -16,6 +16,7 @@ class Teacher(models.Model):
     full_name = models.CharField(max_length=200)
     one_rate = models.IntegerField(null=True)
     load = models.FloatField(null=True)
+    excel_column_index = models.IntegerField(null=True)
     department = models.ForeignKey(
         Department, null=True, on_delete=models.SET_NULL)
 
@@ -24,6 +25,19 @@ class Teacher(models.Model):
 
     class Meta:
         db_table = 'teacher'
+
+
+class Group(models.Model):
+    name = models.CharField(primary_key=True, max_length=100)
+    code = models.CharField(max_length=100)
+    course = models.IntegerField()
+    number_of_students = models.IntegerField()
+
+    def __str__(self) -> str:
+        return f"{self.name}"
+
+    class Meta:
+        db_table = 'group'
 
 
 class Subject(models.Model):
@@ -40,7 +54,7 @@ class Subject(models.Model):
     total_hour = models.IntegerField(null=True)
     department = models.ForeignKey(
         Department, null=True, on_delete=models.SET_NULL)
-    teacher = models.ManyToManyField(Teacher, related_name='subjects')
+    teachers = models.ManyToManyField(Teacher, related_name='subjects')
 
     def __str__(self) -> str:
         return f"{self.name}, {self.credits}"

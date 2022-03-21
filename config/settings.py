@@ -127,7 +127,8 @@ class DepartmentEnum(enum.Enum):
     computer_engineering = "Department of Computer Engineering"
     intellectual_systems_and_cybersecurity = "Department of Intellectual systems and cybersecurity"
 
-    def get_id(self) -> int:
+    @property
+    def id(self) -> int:
         if self == self.computational_and_data_science:
             return 1
         if self == self.social_sciences:
