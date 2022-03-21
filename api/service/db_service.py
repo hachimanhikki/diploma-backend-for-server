@@ -59,7 +59,7 @@ def _connect_subject_teacher() -> None:
         teacher.subjects.add(*subjects)
 
 
-def _connect_group_subject(course: int):
+def _connect_group_subject(course: int) -> None:
     subjects = Subject.objects.all()
     allowed_group_codes = Group.objects.filter(
         course__exact=course).values_list('code', flat=True).distinct()
