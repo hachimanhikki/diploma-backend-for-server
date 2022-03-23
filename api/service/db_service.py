@@ -61,8 +61,8 @@ def _connect_subject_teacher() -> None:
 
 def _connect_group_subject(course: int) -> None:
     subjects = Subject.objects.all()
-    allowed_group_codes = Group.objects.filter(
-        course__exact=course).values_list('code', flat=True).distinct()
+    allowed_group_codes = set(Group.objects.filter(
+        course__exact=course).values_list('code', flat=True).distinct())
     for subject in subjects:
         groups_list = parse_groups_for_subject(
             course, subject, allowed_group_codes)
