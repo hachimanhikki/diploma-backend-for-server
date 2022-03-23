@@ -1,4 +1,3 @@
-from tokenize import group
 from api.service.excel_parser_service import parse_groups, parse_groups_for_subject, parse_teachers, parse_subjects, parse_subjects_for_teacher
 from config.settings import DepartmentEnum
 from api.model.models import Department, Group, Subject, Teacher
