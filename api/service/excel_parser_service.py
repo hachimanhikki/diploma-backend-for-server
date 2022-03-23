@@ -67,6 +67,6 @@ def parse_groups_for_subject(course: int, subject: Subject, allowed_group_codes)
         trimester = functions.clear_int(course_sheet[course].cell(
             row=subject.row_index, column=i).value)
         group_code = course_sheet[course].cell(row=8, column=i).value
-        if group_code in allowed_group_codes and trimester is not None:
+        if group_code in allowed_group_codes and trimester > 0:
             groups.append((group_code, trimester))
     return groups

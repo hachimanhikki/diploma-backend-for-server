@@ -18,11 +18,12 @@ class Teacher(models.Model):
     one_rate = models.IntegerField(null=True)
     load = models.FloatField(null=True)
     excel_column_index = models.IntegerField(null=True)
+    total_hour = models.IntegerField(default=0)
     department = models.ForeignKey(
         Department, null=True, on_delete=models.SET_NULL)
 
     def __str__(self) -> str:
-        return f"{self.id} {self.full_name}"
+        return f"{self.id} {self.full_name} {self.total_hour}"
 
     class Meta:
         db_table = 'teacher'
@@ -44,15 +45,15 @@ class Group(models.Model):
 class Subject(models.Model):
     name = models.CharField(max_length=200)
     credits = models.IntegerField()
-    lecture_count = models.IntegerField(null=True)
-    practice_count = models.IntegerField(null=True)
-    office_count = models.IntegerField(null=True)
-    lab_count = models.IntegerField(null=True)
-    lecture_hour = models.IntegerField(null=True)
-    practice_hour = models.IntegerField(null=True)
-    office_hour = models.IntegerField(null=True)
-    lab_cout = models.IntegerField(null=True)
-    total_hour = models.IntegerField(null=True)
+    lecture_count = models.IntegerField(default=0)
+    practice_count = models.IntegerField(default=0)
+    office_count = models.IntegerField(default=0)
+    lab_count = models.IntegerField(default=0)
+    lecture_hour = models.IntegerField(default=0)
+    practice_hour = models.IntegerField(default=0)
+    office_hour = models.IntegerField(default=0)
+    lab_hour = models.IntegerField(default=0)
+    total_hour = models.IntegerField(default=0)
     row_index = models.IntegerField(null=True)
 
     department = models.ForeignKey(
@@ -102,3 +103,14 @@ class GroupSubject(models.Model):
     class Meta:
         db_table = 'group_subject'
         unique_together = [['subject', 'group']]
+
+
+class Workload(models.Model):
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    group_subject = models.ForeignKey(
+        GroupSubject, null=True, on_delete=models.CASCADE)
+    is_lecture = models.BooleanField()
+    is_lab = models.BooleanField()
+
+    class Meta:
+        db_table = 'workload'

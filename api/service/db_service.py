@@ -1,6 +1,6 @@
 from api.service.excel_parser_service import parse_groups, parse_groups_for_subject, parse_teachers, parse_subjects, parse_subjects_for_teacher
 from config.settings import DepartmentEnum
-from api.model.models import Department, Group, Subject, Teacher
+from api.model.models import Department, Group, Subject, Teacher, Workload
 
 
 def populate_database() -> None:
@@ -71,3 +71,23 @@ def _connect_group_subject(course: int) -> None:
             subject.groups.add(
                 *groups, through_defaults={'trimester': trimester})
             subject.save()
+
+
+def update_teacher_total_hours(teachers: list, hours: list) -> None:
+    for i in range(len(teachers)):
+        teachers[i].total_hour += hours[i]
+        teachers[i].save()
+
+
+def populate_workload(teachers: list, subject: Subject, teacher_groups: list, groups: list) -> None:
+    group_index = 0
+    for i in range(len(teachers)):
+        while teacher_groups[i] > 0:
+            workload = Workload()
+            workload.teacher = teachers[i]
+            workload.is_lecture = i < subject.lecture_count
+            workload.is_lab = i < subject.lab_count
+            workload.group_subject = groups[group_index]
+            workload.save()
+            group_index += 1
+            teacher_groups[i] -= 1
