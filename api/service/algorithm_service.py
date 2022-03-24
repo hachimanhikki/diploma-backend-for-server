@@ -11,7 +11,7 @@ def calculate_workload():
     _calculate_hours(subjects[0])
 
 
-def distribute(groups, teachers):
+def _distribute_lecture_teachers(groups, teachers):
     base, extra = divmod(groups, teachers)
     return [base + (i < extra) for i in range(teachers)]
 
@@ -20,7 +20,7 @@ def _calculate_hours(subject):
     groups = GroupSubject.objects.filter(subject__exact=subject)
     groups_count = len(groups)
     teachers = subject.teachers.all()
-
+    lecture_count = subject.lecture_count
     if not teachers:
         return
 
@@ -82,5 +82,3 @@ def _calculate_remaining_hours(remain_hours: list, hours: list, subject: Subject
             teacher_groups[i] += 1
 
 
-def _assign_groups(teacher):
-    pass
