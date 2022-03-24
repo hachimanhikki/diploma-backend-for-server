@@ -11,6 +11,11 @@ def calculate_workload():
     _calculate_hours(subjects[0])
 
 
+def distribute(groups, teachers):
+    base, extra = divmod(groups, teachers)
+    return [base + (i < extra) for i in range(teachers)]
+
+
 def _calculate_hours(subject):
     groups = GroupSubject.objects.filter(subject__exact=subject)
     groups_count = len(groups)
@@ -32,8 +37,10 @@ def _calculate_hours(subject):
     hours = [one_teacher_hour] * len(teachers)
     remain_hours[-1] += remainder
     hours[-1] += remainder
-    teacher_groups = [one_teacher_groups] * len(teachers)
-
+    prac_teacher_groups = [one_teacher_groups] * len(teachers)
+    lec_teacher_groups = distribute(groups_count, lecture_count)
+    if len(lec_teacher_groups) < len(teachers):
+        lec_teacher_groups.extend([0] * (len(teachers) - lecture_count))
     # Compute lecture hours, lab hours, office hours, practice hours
     _calculate_all_hours(remain_hours, subject, one_teacher_groups)
 
@@ -43,10 +50,10 @@ def _calculate_hours(subject):
 
     # Distrubute remaining practice lessons
     _calculate_remaining_hours(remain_hours, hours, subject,
-                               teacher_groups, practice_count)
+                               prac_teacher_groups, practice_count)
 
     update_teacher_total_hours(teachers, hours)
-    populate_workload(teachers, subject, teacher_groups, groups)
+    populate_workload(teachers, subject, prac_teacher_groups, lec_teacher_groups, groups)
 
 
 def _calculate_all_hours(remain_hours: list, subject: Subject, one_teacher_groups: int) -> None:

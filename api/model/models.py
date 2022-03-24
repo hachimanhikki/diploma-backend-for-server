@@ -111,6 +111,7 @@ class Workload(models.Model):
         GroupSubject, null=True, on_delete=models.CASCADE)
     is_lecture = models.BooleanField()
     is_lab = models.BooleanField()
+    is_prac = models.BooleanField()
 
     class Meta:
         db_table = 'workload'

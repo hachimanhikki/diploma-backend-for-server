@@ -79,15 +79,29 @@ def update_teacher_total_hours(teachers: list, hours: list) -> None:
         teachers[i].save()
 
 
-def populate_workload(teachers: list, subject: Subject, teacher_groups: list, groups: list) -> None:
+def populate_workload(teachers: list, subject: Subject, prac_teacher_groups: list, lec_teacher_groups: list, groups: list) -> None:
     group_index = 0
+    range_p = [group_index, group_index + prac_teacher_groups[i]]
+    range_l = [group_index, group_index + lec_teacher_groups[i]]
     for i in range(len(teachers)):
-        while teacher_groups[i] > 0:
+        if (lec_teacher_groups[i] != 0):
+            bottom = min(range_p[0], range_l[0])
+            top = max(range_p[1], range_l[1])        
+        else:
+            bottom = range_p[0]
+            top = range_p[1]
+        for k in range(bottom, top):
             workload = Workload()
             workload.teacher = teachers[i]
-            workload.is_lecture = i < subject.lecture_count
-            workload.is_lab = i < subject.lab_count
+            workload.is_lecture = range_l[0] < i < range_l[1]
+            workload.is_prac = range_p[0] < i < range_p[1]
+            workload.is_lab = False
             workload.group_subject = groups[group_index]
             workload.save()
             group_index += 1
-            teacher_groups[i] -= 1
+        range_p[0] += prac_teacher_groups[i]
+        range_p[1] += prac_teacher_groups[i]
+        range_l[0] += lec_teacher_groups[i]
+        range_l[1] += lec_teacher_groups[i]
+
+
