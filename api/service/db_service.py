@@ -86,7 +86,7 @@ def populate_workload(teachers: list, subject: Subject, prac_teacher_groups: lis
     for i in range(len(teachers)):
         if (lec_teacher_groups[i] != 0):
             bottom = min(range_p[0], range_l[0])
-            top = max(range_p[1], range_l[1])        
+            top = max(range_p[1], range_l[1])
         else:
             bottom = range_p[0]
             top = range_p[1]
@@ -96,7 +96,7 @@ def populate_workload(teachers: list, subject: Subject, prac_teacher_groups: lis
             workload.is_lecture = range_l[0] < i < range_l[1]
             workload.is_prac = range_p[0] < i < range_p[1]
             workload.is_lab = False
-            workload.group_subject = groups[group_index]
+            workload.group_subject = groups[k]
             workload.save()
             group_index += 1
         range_p[0] += prac_teacher_groups[i]
