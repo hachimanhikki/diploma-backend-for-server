@@ -79,29 +79,25 @@ def update_teacher_total_hours(teachers: list, hours: list) -> None:
         teachers[i].save()
 
 
-def populate_workload(teachers: list, subject: Subject, prac_teacher_groups: list, lec_teacher_groups: list, groups: list) -> None:
-    group_index = 0
-    range_p = [group_index, group_index + prac_teacher_groups[i]]
-    range_l = [group_index, group_index + lec_teacher_groups[i]]
+def populate_workload(teachers: list, prac_teacher_groups: list, lec_teacher_groups: list, groups: list) -> None:
+    prac_range = [0, prac_teacher_groups[0]]
+    lec_range = [0, lec_teacher_groups[0]]
     for i in range(len(teachers)):
-        if (lec_teacher_groups[i] != 0):
-            bottom = min(range_p[0], range_l[0])
-            top = max(range_p[1], range_l[1])
-        else:
-            bottom = range_p[0]
-            top = range_p[1]
-        for k in range(bottom, top):
+        bottom = min(prac_range[0], lec_range[0])
+        top = max(prac_range[1], lec_range[1])
+        if (lec_teacher_groups[i] == 0):
+            bottom = prac_range[0]
+            top = prac_range[1]
+        for j in range(bottom, top):
             workload = Workload()
             workload.teacher = teachers[i]
-            workload.is_lecture = range_l[0] < i < range_l[1]
-            workload.is_prac = range_p[0] < i < range_p[1]
+            workload.is_lecture = lec_range[0] <= j <= lec_range[1] - 1
+            workload.is_prac = prac_range[0] <= j <= prac_range[1] - 1
             workload.is_lab = False
-            workload.group_subject = groups[k]
+            workload.group_subject = groups[j]
             workload.save()
-            group_index += 1
-        range_p[0] += prac_teacher_groups[i]
-        range_p[1] += prac_teacher_groups[i]
-        range_l[0] += lec_teacher_groups[i]
-        range_l[1] += lec_teacher_groups[i]
-
-
+        if i + 1 < len(teachers):
+            prac_range[0] += prac_teacher_groups[i]
+            prac_range[1] += prac_teacher_groups[i + 1]
+            lec_range[0] += lec_teacher_groups[i]
+            lec_range[1] += lec_teacher_groups[i + 1]

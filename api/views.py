@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from api.model.models import Workload
 from api.service.algorithm_service import calculate_workload
 from api.service.db_service import populate_database
 from .service.save_service import save_file
@@ -20,5 +21,6 @@ def upload(request):
 
 def check(request):
     # populate_database()
+    # Workload.objects.all().delete()
     calculate_workload()
     return JsonResponse({'success': True})

@@ -5,18 +5,13 @@ from api.service.db_service import populate_workload, update_teacher_total_hours
 def calculate_workload():
     subjects = Subject.objects.all()
     # for subject in subjects:
-    #     _assign_hours(subject)
+    #     _calculate_hours(subject)
     #     print()
     print(subjects[0])
     _calculate_hours(subjects[0])
 
 
-def _distribute_lecture_teachers(groups, teachers):
-    base, extra = divmod(groups, teachers)
-    return [base + (i < extra) for i in range(teachers)]
-
-
-def _calculate_hours(subject):
+def _calculate_hours(subject: Subject) -> None:
     groups = GroupSubject.objects.filter(subject__exact=subject)
     groups_count = len(groups)
     teachers = subject.teachers.all()
@@ -38,9 +33,9 @@ def _calculate_hours(subject):
     remain_hours[-1] += remainder
     hours[-1] += remainder
     prac_teacher_groups = [one_teacher_groups] * len(teachers)
-    lec_teacher_groups = distribute(groups_count, lecture_count)
-    if len(lec_teacher_groups) < len(teachers):
-        lec_teacher_groups.extend([0] * (len(teachers) - lecture_count))
+    lec_teacher_groups = _distribute_lecture_teachers(
+        groups_count, lecture_count, len(teachers))
+
     # Compute lecture hours, lab hours, office hours, practice hours
     _calculate_all_hours(remain_hours, subject, one_teacher_groups)
 
@@ -53,7 +48,16 @@ def _calculate_hours(subject):
                                prac_teacher_groups, practice_count)
 
     update_teacher_total_hours(teachers, hours)
-    populate_workload(teachers, subject, prac_teacher_groups, lec_teacher_groups, groups)
+    populate_workload(teachers, prac_teacher_groups,
+                      lec_teacher_groups, groups)
+
+
+def _distribute_lecture_teachers(groups_count: int, lecture_count: int, teachers_count: int) -> list:
+    base, extra = divmod(groups_count, lecture_count)
+    result = [base + (i < extra) for i in range(lecture_count)]
+    if len(result) < teachers_count:
+        result.extend([0] * (teachers_count - lecture_count))
+    return result
 
 
 def _calculate_all_hours(remain_hours: list, subject: Subject, one_teacher_groups: int) -> None:
@@ -80,5 +84,3 @@ def _calculate_remaining_hours(remain_hours: list, hours: list, subject: Subject
             remain_hours[i] -= subject.practice_hour
             practice_count -= 1
             teacher_groups[i] += 1
-
-
