@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from api.model.models import Workload
 from api.service.algorithm_service import calculate_workload
 from api.service.db_service import populate_database
+from api.service.excel_create_service import create_excel_workload
 from .service.save_service import save_file
 
 
@@ -22,5 +23,6 @@ def upload(request):
 def check(request):
     # populate_database()
     # Workload.objects.all().delete()
-    calculate_workload()
+    # calculate_workload()
+    create_excel_workload()
     return JsonResponse({'success': True})

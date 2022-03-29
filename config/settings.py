@@ -118,6 +118,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'file')
 MEDIA_URL = '/file/'
 ALLOWED_MEDIA_TYPE = ['xlsx']
 UPLOADED_FILE_NAME = 'document'
+TEMPLATE_NAME = f'{MEDIA_ROOT}/Нагрузка_template.xlsx'
 
 
 # Departments

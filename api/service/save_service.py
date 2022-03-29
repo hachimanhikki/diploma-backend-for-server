@@ -1,4 +1,5 @@
 import os
+import shutil
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from api.model.error import IncorrectFileType
@@ -12,6 +13,10 @@ def save_file(file) -> None:
     file_name = f'all_data.{file_type}'
     _remove_exists(fs, file_name)
     fs.save(file_name, file)
+
+
+def create_excel_doc(template_name: str, workload_name: str) -> None:
+    shutil.copy(template_name, workload_name)
 
 
 def _get_file_type(file_name: str) -> str:

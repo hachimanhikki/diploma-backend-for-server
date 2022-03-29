@@ -131,7 +131,4 @@ GitHub.sublime-settings
 !.vscode/extensions.json 
 .history
 
-
-# Ignore files
-file/
 test.py

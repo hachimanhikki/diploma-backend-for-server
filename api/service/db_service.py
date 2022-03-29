@@ -92,7 +92,7 @@ def populate_workload(teachers: list, prac_teacher_groups: list, lec_teacher_gro
             workload = Workload()
             workload.teacher = teachers[i]
             workload.is_lecture = lec_range[0] <= j <= lec_range[1] - 1
-            workload.is_prac = prac_range[0] <= j <= prac_range[1] - 1
+            workload.is_practice = prac_range[0] <= j <= prac_range[1] - 1
             workload.is_lab = False
             workload.group_subject = groups[j]
             workload.save()
