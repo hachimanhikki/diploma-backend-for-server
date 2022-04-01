@@ -4,6 +4,7 @@ from api.service.save_service import create_excel_doc
 from config.settings import MEDIA_ROOT, TEMPLATE_NAME
 from api.model.models import Teacher, Workload
 from openpyxl.styles import Border, Side
+import collections
 
 wb = workload_sheet = None
 
@@ -21,13 +22,14 @@ def _populate_workload() -> None:
     row_index = 7
     for teacher in all_teacher:
         teacher_workloads = Workload.objects.filter(
-            teacher_id__exact=teacher.id).order_by('group_subject__subject__name', 'group_subject__group__name')
+            teacher_id__exact=teacher.id).order_by('group_subject__subject__name', 'group_subject__group__name', 'is_lecture')
         if not teacher_workloads:
             continue
         _configure_teacher_cell(teacher, row_index)
         _merge_column(row_index, row_index + len(teacher_workloads))
+        teacher_lecture_groups = collections.defaultdict(list)
         for workload in teacher_workloads:
-            _configure_workload_cell(workload, row_index)
+            _configure_workload_cell(workload, row_index, teacher_lecture_groups)
             row_index += 1
         workload_sheet.cell(
             row=row_index, column=19).value = teacher.total_hour
@@ -56,7 +58,7 @@ def _configure_teacher_cell(teacher: Teacher, row_index: int) -> None:
     workload_sheet.cell(row=row_index, column=6).value = teacher.load
 
 
-def _configure_workload_cell(workload: Workload, row_index: int) -> None:
+def _configure_workload_cell(workload: Workload, row_index: int, teacher_lecture_groups: dict) -> None:
     subject = workload.group_subject.subject
     group = workload.group_subject.group
     workload_sheet.cell(
@@ -72,8 +74,10 @@ def _configure_workload_cell(workload: Workload, row_index: int) -> None:
     workload_sheet.cell(
         row=row_index, column=11).value = subject.credits
     if workload.is_lecture:
+        teacher_lecture_groups[(workload.teacher.id, workload.group_subject.subject.id)].append(workload.group_subject)
+    elif len(teacher_lecture_groups[(workload.teacher.id, workload.group_subject.subject.id)]) > 1:
         workload_sheet.cell(
-            row=row_index, column=13).value = subject.lecture_hour
+            row=row_index, column=13).value = teacher_lecture_groups[(workload.teacher.id, workload.group_subject.subject.id)][0].group.name
     if workload.is_lab:
         workload_sheet.cell(
             row=row_index, column=14).value = subject.lab_hour
