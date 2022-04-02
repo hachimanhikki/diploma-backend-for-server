@@ -4,7 +4,7 @@ from api.service.save_service import create_excel_doc
 from config.settings import MEDIA_ROOT, TEMPLATE_NAME
 from api.model.models import Teacher, Workload
 from openpyxl.styles import Border, Side
-import collections
+
 
 wb = workload_sheet = None
 
@@ -22,15 +22,32 @@ def _populate_workload() -> None:
     row_index = 7
     for teacher in all_teacher:
         teacher_workloads = Workload.objects.filter(
-            teacher_id__exact=teacher.id).order_by('group_subject__subject__name', 'group_subject__group__name', 'is_lecture')
+            teacher_id__exact=teacher.id).order_by('group_subject__subject__name', 'group_subject__group__name')
         if not teacher_workloads:
             continue
         _configure_teacher_cell(teacher, row_index)
-        _merge_column(row_index, row_index + len(teacher_workloads))
-        teacher_lecture_groups = collections.defaultdict(list)
-        for workload in teacher_workloads:
-            _configure_workload_cell(workload, row_index, teacher_lecture_groups)
-            row_index += 1
+        teacher_subjects = set(teacher_workloads.values_list(
+            'group_subject__subject__name', 'group_subject__subject__office_hour'))
+        start_row_index = row_index
+        for subject_name, office_hour in teacher_subjects:
+            workload_sheet.cell(row=row_index, column=16).value = office_hour
+            teacher_lecture_workloads = teacher_workloads.filter(
+                group_subject__subject__name__exact=subject_name, is_lecture__exact=True)
+            teacher_practice_workloads = teacher_workloads.filter(
+                group_subject__subject__name__exact=subject_name, is_practice__exact=True)
+            teacher_lab_workloads = teacher_workloads.filter(
+                group_subject__subject__name__exact=subject_name, is_lab__exact=True)
+            if teacher_lecture_workloads:
+                _configure_lecture_cells(teacher_lecture_workloads, row_index)
+                row_index += 1
+            if teacher_practice_workloads:
+                _configure_cells(teacher_practice_workloads,
+                                 row_index, is_practice=True)
+                row_index += len(teacher_practice_workloads)
+            if teacher_lab_workloads:
+                _configure_cells(teacher_lab_workloads, row_index, is_lab=True)
+                row_index += len(teacher_lab_workloads)
+        _merge_column(start_row_index, row_index)
         workload_sheet.cell(
             row=row_index, column=19).value = teacher.total_hour
         _set_borders(row_index)
@@ -52,40 +69,50 @@ def _merge_column(start_row_index: int, end_row_index: int) -> None:
             start_row=start_row_index, start_column=col, end_row=end_row_index, end_column=col)
 
 
+def _configure_lecture_cells(workloads, row_index: int) -> None:
+    _configure_workload_cell(workloads[0], row_index)
+    lecture_groups = ', '.join(
+        [workload.group_subject.group.name for workload in workloads])
+    number_of_students = sum(
+        [workload.group_subject.group.number_of_students for workload in workloads])
+    workload_sheet.cell(row=row_index, column=9).value = lecture_groups
+    workload_sheet.cell(row=row_index, column=11).value = number_of_students
+    workload_sheet.cell(
+        row=row_index, column=13).value = workloads[0].group_subject.subject.lecture_hour
+
+
+def _configure_cells(workloads, row_index: int, is_practice: bool = False, is_lab: bool = False) -> None:
+    for workload in workloads:
+        _configure_workload_cell(workload, row_index, is_practice, is_lab)
+        row_index += 1
+
+
 def _configure_teacher_cell(teacher: Teacher, row_index: int) -> None:
     workload_sheet.cell(row=row_index, column=2).value = teacher.full_name
     workload_sheet.cell(row=row_index, column=5).value = teacher.one_rate
     workload_sheet.cell(row=row_index, column=6).value = teacher.load
 
 
-def _configure_workload_cell(workload: Workload, row_index: int, teacher_lecture_groups: dict) -> None:
+def _configure_workload_cell(workload: Workload, row_index: int, is_practice: bool = False, is_lab: bool = False) -> None:
     subject = workload.group_subject.subject
     group = workload.group_subject.group
     workload_sheet.cell(
         row=row_index, column=7).value = subject.name.capitalize()
     workload_sheet.cell(
         row=row_index, column=8).value = group.course
-    workload_sheet.cell(
-        row=row_index, column=9).value = group.name
+    workload_sheet.cell(row=row_index, column=9).value = group.name
     workload_sheet.cell(
         row=row_index, column=10).value = workload.group_subject.trimester
     workload_sheet.cell(
         row=row_index, column=11).value = group.number_of_students
     workload_sheet.cell(
-        row=row_index, column=11).value = subject.credits
-    if workload.is_lecture:
-        teacher_lecture_groups[(workload.teacher.id, workload.group_subject.subject.id)].append(workload.group_subject)
-    elif len(teacher_lecture_groups[(workload.teacher.id, workload.group_subject.subject.id)]) > 1:
-        workload_sheet.cell(
-            row=row_index, column=13).value = teacher_lecture_groups[(workload.teacher.id, workload.group_subject.subject.id)][0].group.name
-    if workload.is_lab:
-        workload_sheet.cell(
-            row=row_index, column=14).value = subject.lab_hour
-    if workload.is_practice:
+        row=row_index, column=12).value = subject.credits
+    if is_practice:
         workload_sheet.cell(
             row=row_index, column=15).value = subject.practice_hour
-    workload_sheet.cell(
-        row=row_index, column=16).value = subject.office_hour
+    if is_lab:
+        workload_sheet.cell(
+            row=row_index, column=14).value = subject.lab_hour
 
 
 def _formatted_current_date() -> None:
