@@ -22,7 +22,7 @@ def upload(request):
 
 def check(request):
     # populate_database()
-    # Workload.objects.all().delete()
-    # calculate_workload()
+    Workload.objects.all().delete()
+    calculate_workload()
     create_excel_workload()
     return JsonResponse({'success': True})

@@ -1,14 +1,11 @@
-from api.model.models import GroupSubject, Subject, Workload
+from api.model.models import GroupSubject, Subject
 from api.service.db_service import populate_workload, update_teacher_total_hours
 
 
 def calculate_workload():
     subjects = Subject.objects.all()
-    # for subject in subjects:
-    #     _calculate_hours(subject)
-    #     print()
-    print(subjects[0])
-    _calculate_hours(subjects[0])
+    for subject in subjects:
+        _calculate_hours(subject)
 
 
 def _calculate_hours(subject: Subject) -> None:

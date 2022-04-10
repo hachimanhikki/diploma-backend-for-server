@@ -74,6 +74,9 @@ def _connect_group_subject(course: int) -> None:
 
 
 def update_teacher_total_hours(teachers: list, hours: list) -> None:
+    print(teachers)
+    print(hours)
+    print("================")
     for i in range(len(teachers)):
         teachers[i].total_hour += hours[i]
         teachers[i].save()

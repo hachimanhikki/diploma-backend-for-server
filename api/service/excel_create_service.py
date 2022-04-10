@@ -3,7 +3,7 @@ import openpyxl
 from api.service.save_service import create_excel_doc
 from config.settings import MEDIA_ROOT, TEMPLATE_NAME
 from api.model.models import Teacher, Workload
-from openpyxl.styles import Border, Side
+from openpyxl.styles import Border, Side, Font
 
 
 wb = workload_sheet = None
@@ -25,7 +25,6 @@ def _populate_workload() -> None:
             teacher_id__exact=teacher.id).order_by('group_subject__subject__name', 'group_subject__group__name')
         if not teacher_workloads:
             continue
-        _configure_teacher_cell(teacher, row_index)
         teacher_subjects = set(teacher_workloads.values_list(
             'group_subject__subject__name', 'group_subject__subject__office_hour'))
         start_row_index = row_index
@@ -48,8 +47,7 @@ def _populate_workload() -> None:
                 _configure_cells(teacher_lab_workloads, row_index, is_lab=True)
                 row_index += len(teacher_lab_workloads)
         _merge_column(start_row_index, row_index)
-        workload_sheet.cell(
-            row=row_index, column=19).value = teacher.total_hour
+        _configure_teacher_cell(teacher, start_row_index, row_index)
         _set_borders(row_index)
         row_index += 1
     wb.save(_excel_doc_name())
@@ -87,10 +85,33 @@ def _configure_cells(workloads, row_index: int, is_practice: bool = False, is_la
         row_index += 1
 
 
-def _configure_teacher_cell(teacher: Teacher, row_index: int) -> None:
-    workload_sheet.cell(row=row_index, column=2).value = teacher.full_name
-    workload_sheet.cell(row=row_index, column=5).value = teacher.one_rate
-    workload_sheet.cell(row=row_index, column=6).value = teacher.load
+def _get_sum_formula(start_row_index: int, end_row_index: int, column_index: int) -> str:
+    return f"=SUM({workload_sheet.cell(row=start_row_index, column=column_index).coordinate}:{workload_sheet.cell(row=end_row_index, column=column_index).coordinate})"
+
+
+def _set_sums(start_row_index: int, end_row_index: int) -> None:
+    for i in range(13, 19):
+        workload_sheet.cell(row=end_row_index, column=i).value = _get_sum_formula(
+            start_row_index, end_row_index - 1, i)
+
+
+def _set_fonts(row_index: int) -> None:
+    for i in range(13, 21):
+        workload_sheet.cell(row=row_index, column=i).font = Font(
+            name="Times New Roman", size=10, bold=True)
+
+
+def _configure_teacher_cell(teacher: Teacher, start_row_index: int, end_row_index: int) -> None:
+    workload_sheet.cell(row=start_row_index,
+                        column=2).value = teacher.full_name
+    workload_sheet.cell(row=start_row_index, column=5).value = teacher.one_rate
+    workload_sheet.cell(row=start_row_index, column=6).value = teacher.load
+    workload_sheet.cell(row=end_row_index,
+                        column=19).value = teacher.total_hour
+    workload_sheet.cell(
+        row=end_row_index, column=20).value = round(teacher.total_hour / teacher.one_rate, 2)
+    _set_sums(start_row_index, end_row_index)
+    _set_fonts(end_row_index)
 
 
 def _configure_workload_cell(workload: Workload, row_index: int, is_practice: bool = False, is_lab: bool = False) -> None:
