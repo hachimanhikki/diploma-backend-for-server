@@ -21,7 +21,7 @@ def upload(request):
 
 
 def check(request):
-    # populate_database()
+    populate_database()
     Workload.objects.all().delete()
     Teacher.objects.all().update(total_hour=0)
     calculate_workload()

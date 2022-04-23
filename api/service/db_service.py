@@ -3,15 +3,18 @@ from config.settings import DepartmentEnum
 from api.model.models import Department, Group, Subject, Teacher, Workload
 
 
+courses = [2, 3]
+
+
 def populate_database() -> None:
     if not Department.objects.exists():
         _populate_departments()
     _delete_all_existing()
     _populate_groups()
     _populate_teachers()
-    _populate_subjects(3)
+    _populate_all_courses()
     _connect_subject_teacher()
-    _connect_group_subject(3)
+    _connect_all_group_subject()
 
 
 def _delete_all_existing() -> None:
@@ -38,6 +41,11 @@ def _populate_teachers() -> None:
         teacher.save()
 
 
+def _populate_all_courses():
+    for course in courses:
+        _populate_subjects(course)
+
+
 def _populate_subjects(course: int) -> None:
     subjects = parse_subjects(course)
     for subject in subjects:
@@ -56,6 +64,11 @@ def _connect_subject_teacher() -> None:
         subject_names = parse_subjects_for_teacher(teacher)
         subjects = Subject.objects.filter(name__in=subject_names)
         teacher.subjects.add(*subjects)
+
+
+def _connect_all_group_subject():
+    for course in courses:
+        _connect_group_subject(course)
 
 
 def _connect_group_subject(course: int) -> None:
