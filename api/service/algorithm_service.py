@@ -63,15 +63,3 @@ def _calculate_all_hours(total_hours: list, subject: Subject, prac_teacher_group
             subject_lab_count -= 1
         total_hours[i] += subject.office_hour
         total_hours[i] += subject.practice_hour * prac_teacher_groups[i]
-
-
-def _calculate_remaining_hours(remain_hours: list, hours: list, subject: Subject, teacher_groups: list, practice_count: int) -> None:
-    for i in range(1, len(remain_hours)):
-        remain_hours[i] += remain_hours[i - 1]
-        hours[i] += remain_hours[i - 1]
-        hours[i - 1] -= remain_hours[i - 1]
-        remain_hours[i - 1] = 0
-        while remain_hours[i] >= subject.practice_hour and practice_count > 0:
-            remain_hours[i] -= subject.practice_hour
-            practice_count -= 1
-            teacher_groups[i] += 1

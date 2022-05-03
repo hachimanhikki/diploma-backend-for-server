@@ -1,5 +1,4 @@
 import os
-from tkinter.tix import COLUMN
 import openpyxl
 from django.conf import settings
 from api.model.models import Group, Subject, Teacher
@@ -65,7 +64,7 @@ def parse_groups_for_subject(course: int, subject: Subject, allowed_group_codes)
     groups = []
     for i in range(2, len(allowed_group_codes) + 2):
         trimester = functions.clear_int(course_sheet[course].cell(
-            row=subject.row_index, column=i).value)
+            row=subject.excel_row_index, column=i).value)
         group_code = course_sheet[course].cell(row=8, column=i).value
         if group_code in allowed_group_codes and trimester > 0:
             groups.append((group_code, trimester))

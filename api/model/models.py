@@ -1,4 +1,3 @@
-from statistics import mode
 from django.db import models
 import api.service.functions as functions
 
@@ -15,6 +14,8 @@ class Department(models.Model):
 
 class Teacher(models.Model):
     full_name = models.CharField(max_length=200)
+    position = models.CharField(max_length=200, null=True)
+    kpi = models.CharField(max_length=200, null=True)
     one_rate = models.IntegerField(null=True)
     load = models.FloatField(null=True)
     excel_column_index = models.IntegerField(null=True)
@@ -54,7 +55,7 @@ class Subject(models.Model):
     office_hour = models.IntegerField(default=0)
     lab_hour = models.IntegerField(default=0)
     total_hour = models.IntegerField(default=0)
-    row_index = models.IntegerField(null=True)
+    excel_row_index = models.IntegerField(null=True)
 
     department = models.ForeignKey(
         Department, null=True, on_delete=models.SET_NULL)
@@ -88,7 +89,7 @@ class Subject(models.Model):
             sheet.cell(row=row_index, column=20).value)
         self.total_hour = functions.clear_int(
             sheet.cell(row=row_index, column=21).value)
-        self.row_index = row_index
+        self.excel_row_index = row_index
 
     class Meta:
         db_table = 'subject'

@@ -15,8 +15,8 @@ def save_file(file) -> None:
     fs.save(file_name, file)
 
 
-def create_excel_doc(template_name: str, workload_name: str) -> None:
-    shutil.copy(template_name, workload_name)
+def create_excel_doc(template_path: str, workload_path: str) -> None:
+    shutil.copy(template_path, workload_path)
 
 
 def _get_file_type(file_name: str) -> str:

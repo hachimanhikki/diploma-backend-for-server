@@ -22,8 +22,8 @@ def upload(request):
 
 def check(request):
     populate_database()
-    Workload.objects.all().delete()
-    Teacher.objects.all().update(total_hour=0)
+    # Workload.objects.all().delete()
+    # Teacher.objects.all().update(total_hour=0)
     calculate_workload()
     create_excel_workload()
     return JsonResponse({'success': True})

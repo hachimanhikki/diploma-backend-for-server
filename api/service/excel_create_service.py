@@ -1,7 +1,7 @@
 from datetime import date
 import openpyxl
 from api.service.save_service import create_excel_doc
-from config.settings import MEDIA_ROOT, TEMPLATE_NAME
+from config.settings import ACADEMIC_LOAD_TEMPLATE_PATH, ACADEMIC_LOAD_PATH
 from api.model.models import Teacher, Workload
 from openpyxl.styles import Border, Side, Font
 
@@ -11,8 +11,8 @@ wb = workload_sheet = None
 
 def create_excel_workload() -> None:
     global wb, workload_sheet
-    create_excel_doc(TEMPLATE_NAME, _excel_doc_name())
-    wb = openpyxl.load_workbook(_excel_doc_name())
+    create_excel_doc(ACADEMIC_LOAD_TEMPLATE_PATH, _excel_doc_path())
+    wb = openpyxl.load_workbook(_excel_doc_path())
     workload_sheet = wb['Нагрузка']
     _populate_workload()
 
@@ -50,7 +50,7 @@ def _populate_workload() -> None:
         _configure_teacher_cell(teacher, start_row_index, row_index)
         _set_borders(row_index)
         row_index += 1
-    wb.save(_excel_doc_name())
+    wb.save(_excel_doc_path())
 
 
 def _set_borders(row_index: int) -> None:
@@ -104,6 +104,8 @@ def _set_fonts(row_index: int) -> None:
 def _configure_teacher_cell(teacher: Teacher, start_row_index: int, end_row_index: int) -> None:
     workload_sheet.cell(row=start_row_index,
                         column=2).value = teacher.full_name
+    workload_sheet.cell(row=start_row_index, column=3).value = teacher.position
+    workload_sheet.cell(row=start_row_index, column=4).value = teacher.kpi
     workload_sheet.cell(row=start_row_index, column=5).value = teacher.one_rate
     workload_sheet.cell(row=start_row_index, column=6).value = teacher.load
     workload_sheet.cell(row=end_row_index,
@@ -141,5 +143,5 @@ def _formatted_current_date() -> None:
     return date.strftime(today, "%d.%m.%Y")
 
 
-def _excel_doc_name() -> None:
-    return f"{MEDIA_ROOT}/Нагрузка {_formatted_current_date()}.xlsx"
+def _excel_doc_path() -> None:
+    return f"{ACADEMIC_LOAD_PATH}/Нагрузка {_formatted_current_date()}.xlsx"
