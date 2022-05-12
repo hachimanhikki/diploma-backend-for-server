@@ -1,7 +1,7 @@
-from django.urls import path
 from . import views
+from django.urls import path, include
 
 urlpatterns = [
-    path('upload', views.upload),
-    path('check', views.check)
+    path('check', views.check),
+    path('flows/', include('flows.urls'))
 ]

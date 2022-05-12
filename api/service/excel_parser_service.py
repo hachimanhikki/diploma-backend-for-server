@@ -10,6 +10,7 @@ wb = openpyxl.load_workbook(os.path.join(
     settings.MEDIA_ROOT, 'all_data.xlsx'), data_only=True)
 teachers_sheet = wb['Преподаватели']
 course_sheet = [0, wb['1 курс'], wb['2 курс'], wb['3 курс']]
+course_educational_programs_count = [0, 11, 9, 8]
 group_sheet = wb['Группы']
 
 
@@ -27,11 +28,11 @@ def parse_subjects(course: int) -> list:
     subjects = []
     for i in range(10, course_sheet[course].max_row + 1):
         department = course_sheet[course].cell(
-            row=i, column=course_sheet[course].max_column).value
+            row=i, column=course_educational_programs_count[course] + 14).value
         if isinstance(department, str) and functions.compare_strings(department, DepartmentEnum.computer_engineering.value):
             subject = Subject()
-            subject.configure_subject(i, course_sheet[course])
-            subject.department_id = DepartmentEnum.computer_engineering.id
+            subject.configure_subject(
+                i, DepartmentEnum.computer_engineering.id, course_sheet[course], course_educational_programs_count[course])
             subjects.append(subject)
     return subjects
 
@@ -55,8 +56,7 @@ def parse_groups() -> list:
         group.number_of_students = functions.clear_int(
             group_sheet.cell(row=i, column=3).value)
         group.code = group.name.split('-')[0]
-        if group.course != 1:
-            groups.append(group)
+        groups.append(group)
     return groups
 
 

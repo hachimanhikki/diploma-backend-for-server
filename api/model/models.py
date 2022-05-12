@@ -66,29 +66,30 @@ class Subject(models.Model):
     def __str__(self) -> str:
         return f"{self.name}, {self.credits}"
 
-    def configure_subject(self, row_index, sheet) -> None:
+    def configure_subject(self, row_index, department_id, sheet, educational_programs_count) -> None:
+        self.department_id = department_id
         self.name = functions.formated(
             sheet.cell(row=row_index, column=1).value)
         self.credits = functions.clear_int(
-            sheet.cell(row=row_index, column=12).value)
+            sheet.cell(row=row_index, column=educational_programs_count + 4).value)
         self.lecture_count = functions.clear_int(
-            sheet.cell(row=row_index, column=13).value)
+            sheet.cell(row=row_index, column=educational_programs_count + 5).value)
         self.practice_count = functions.clear_int(
-            sheet.cell(row=row_index, column=14).value)
+            sheet.cell(row=row_index, column=educational_programs_count + 6).value)
         self.office_count = functions.clear_int(
-            sheet.cell(row=row_index, column=15).value)
+            sheet.cell(row=row_index, column=educational_programs_count + 7).value)
         self.lab_count = functions.clear_int(
-            sheet.cell(row=row_index, column=16).value)
+            sheet.cell(row=row_index, column=educational_programs_count + 8).value)
         self.lecture_hour = functions.clear_int(
-            sheet.cell(row=row_index, column=17).value)
+            sheet.cell(row=row_index, column=educational_programs_count + 9).value)
         self.practice_hour = functions.clear_int(
-            sheet.cell(row=row_index, column=18).value)
+            sheet.cell(row=row_index, column=educational_programs_count + 10).value)
         self.office_hour = functions.clear_int(
-            sheet.cell(row=row_index, column=19).value)
+            sheet.cell(row=row_index, column=educational_programs_count + 11).value)
         self.lab_hour = functions.clear_int(
-            sheet.cell(row=row_index, column=20).value)
+            sheet.cell(row=row_index, column=educational_programs_count + 12).value)
         self.total_hour = functions.clear_int(
-            sheet.cell(row=row_index, column=21).value)
+            sheet.cell(row=row_index, column=educational_programs_count + 13).value)
         self.excel_row_index = row_index
 
     class Meta:

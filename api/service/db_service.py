@@ -3,7 +3,7 @@ from config.settings import DepartmentEnum
 from api.model.models import Department, Group, Subject, Teacher, Workload
 
 
-courses = [2, 3]
+courses = [1, 2, 3]
 
 
 def populate_database() -> None:
@@ -12,7 +12,7 @@ def populate_database() -> None:
     _delete_all_existing()
     _populate_groups()
     _populate_teachers()
-    _populate_all_courses()
+    _populate_all_courses_subjects()
     _connect_subject_teacher()
     _connect_all_group_subject()
 
@@ -73,7 +73,7 @@ def _populate_teachers() -> None:
         teacher.save()
 
 
-def _populate_all_courses():
+def _populate_all_courses_subjects():
     for course in courses:
         _populate_subjects(course)
 

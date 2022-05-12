@@ -6,8 +6,6 @@ def calculate_workload():
     subjects = Subject.objects.all()
     for subject in subjects:
         _calculate_hours(subject)
-    # _calculate_hours(subjects[6])
-    # print([(i, subjects[i]) for i in range(len(subjects))])
 
 
 def _calculate_hours(subject: Subject) -> None:
