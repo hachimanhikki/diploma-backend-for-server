@@ -14,7 +14,9 @@ class Department(models.Model):
 
 class Teacher(models.Model):
     full_name = models.CharField(max_length=200)
+    email = models.EmailField(max_length=200, null=True)
     position = models.CharField(max_length=200, null=True)
+    password = models.CharField(max_length=200, null=True)
     kpi = models.CharField(max_length=200, null=True)
     one_rate = models.IntegerField(null=True)
     load = models.FloatField(null=True)
