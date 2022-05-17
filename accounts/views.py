@@ -5,7 +5,7 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
-
+from rest_framework.authtoken.models import Token
 from accounts.serializers import TeacherSerializer
 
 
@@ -19,7 +19,11 @@ def registration_view(request):
             teacher = serializer.save()
             data['response'] = 'succesfully registered a new user'
             data['email'] = teacher.email
-            data['full_name'] = teacher.full_name
+            data['first_name'] = teacher.first_name
+            data['second_name'] = teacher.second_name
+            token = Token.objects.get(user=teacher).key
+            data['token'] = token
         else:
             data = serializer.errors
         return Response(data)
+

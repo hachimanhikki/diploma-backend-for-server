@@ -1,7 +1,8 @@
 import os
 import openpyxl
 from django.conf import settings
-from api.model.models import Group, Subject, Teacher
+from api.model.models import Group, Subject
+from accounts.models import Teacher
 from config.settings import DepartmentEnum
 import api.service.functions as functions
 

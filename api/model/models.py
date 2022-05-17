@@ -1,6 +1,6 @@
 from django.db import models
 import api.service.functions as functions
-
+from config import settings
 
 class Department(models.Model):
     name = models.CharField(max_length=100)
@@ -10,26 +10,6 @@ class Department(models.Model):
 
     class Meta:
         db_table = 'department'
-
-
-class Teacher(models.Model):
-    full_name = models.CharField(max_length=200)
-    email = models.EmailField(max_length=200, null=True)
-    position = models.CharField(max_length=200, null=True)
-    password = models.CharField(max_length=200, null=True)
-    kpi = models.CharField(max_length=200, null=True)
-    one_rate = models.IntegerField(null=True)
-    load = models.FloatField(null=True)
-    excel_column_index = models.IntegerField(null=True)
-    total_hour = models.IntegerField(default=0)
-    department = models.ForeignKey(
-        Department, null=True, on_delete=models.SET_NULL)
-
-    def __str__(self) -> str:
-        return f"{self.id} {self.full_name} {self.total_hour}"
-
-    class Meta:
-        db_table = 'teacher'
 
 
 class Group(models.Model):
@@ -61,7 +41,7 @@ class Subject(models.Model):
 
     department = models.ForeignKey(
         Department, null=True, on_delete=models.SET_NULL)
-    teachers = models.ManyToManyField(Teacher, related_name='subjects')
+    teachers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='subjects')
     groups = models.ManyToManyField(
         Group, related_name='subjects', through='GroupSubject')
 
@@ -110,7 +90,7 @@ class GroupSubject(models.Model):
 
 
 class Workload(models.Model):
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     group_subject = models.ForeignKey(
         GroupSubject, null=True, on_delete=models.CASCADE)
     is_lecture = models.BooleanField()

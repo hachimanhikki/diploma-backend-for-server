@@ -2,7 +2,8 @@ from datetime import date
 import openpyxl
 from api.service.save_service import create_excel_doc
 from config.settings import ACADEMIC_LOAD_TEMPLATE_PATH, ACADEMIC_LOAD_PATH
-from api.model.models import Teacher, Workload
+from api.model.models import Workload
+from accounts.models import Teacher
 from openpyxl.styles import Border, Side, Font
 
 
