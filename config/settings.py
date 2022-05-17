@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'rest_framework',
     'corsheaders',
+    'flows.apps.AccountsConfig',
+    'load.apps.AccountsConfig',
     'accounts.apps.AccountsConfig',
     'rest_framework.authtoken',
 ]
