@@ -3,9 +3,12 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from api.service.db_service import populate_database
 from api.service.save_service import save_file
+from rest_framework.decorators import api_view
+from api.model.static_models import HTTPMethod
 
 
 @csrf_exempt
+@api_view([HTTPMethod.post])
 def upload(request):
     if request.method == "POST":
         try:

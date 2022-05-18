@@ -1,15 +1,11 @@
-from django.shortcuts import render
-
-# Create your views here.
-
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.authtoken.models import Token
+from api.model.static_models import HTTPMethod
 from accounts.serializers import TeacherSerializer
 
 
-@api_view(['POST',])
+@api_view([HTTPMethod.post])
 def registration_view(request):
 
     if request.method == 'POST':
@@ -26,4 +22,3 @@ def registration_view(request):
         else:
             data = serializer.errors
         return Response(data)
-
