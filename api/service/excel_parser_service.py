@@ -64,9 +64,12 @@ def parse_groups() -> list:
 def parse_groups_for_subject(course: int, subject: Subject, allowed_group_codes) -> list:
     groups = []
     for i in range(2, len(allowed_group_codes) + 2):
-        trimester = functions.clear_int(course_sheet[course].cell(
-            row=subject.excel_row_index, column=i).value)
-        group_code = course_sheet[course].cell(row=8, column=i).value
-        if group_code in allowed_group_codes and trimester > 0:
-            groups.append((group_code, trimester))
+        subject_name = course_sheet[course].cell(
+            row=subject.excel_row_index, column=1).value
+        if functions.compare_strings(subject.name, subject_name):
+            trimester = functions.clear_int(course_sheet[course].cell(
+                row=subject.excel_row_index, column=i).value)
+            group_code = course_sheet[course].cell(row=8, column=i).value
+            if group_code in allowed_group_codes and trimester > 0:
+                groups.append((group_code, trimester))
     return groups

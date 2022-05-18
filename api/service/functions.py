@@ -3,6 +3,8 @@ def formated(s: str) -> str:
 
 
 def compare_strings(s1: str, s2: str) -> bool:
+    if not isinstance(s1, str) or not isinstance(s2, str):
+        return False
     return formated(s1) == formated(s2)
 
 

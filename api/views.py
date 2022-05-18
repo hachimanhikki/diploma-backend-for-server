@@ -6,6 +6,7 @@ from api.service.db_service import populate_database
 from api.service.excel_create_service import create_excel_workload
 from accounts.models import Teacher
 
+
 def check(request):
     populate_database()
     # Workload.objects.all().delete()

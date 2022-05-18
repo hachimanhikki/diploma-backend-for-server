@@ -1,8 +1,6 @@
-from api.service.excel_parser_service import parse_groups, parse_groups_for_subject, parse_teachers, parse_subjects, parse_subjects_for_teacher
+from api.service.excel_parser_service import parse_groups, parse_groups_for_subject, parse_subjects
 from config.settings import DepartmentEnum
 from api.model.models import Department, Group, Subject, Workload
-from accounts.models import Teacher
-
 courses = [1, 2, 3]
 
 
@@ -11,9 +9,7 @@ def populate_database() -> None:
         _populate_departments()
     _delete_all_existing()
     _populate_groups()
-    # _populate_teachers()
     _populate_all_courses_subjects()
-    # _connect_subject_teacher()
     _connect_all_group_subject()
 
 
@@ -50,8 +46,6 @@ def populate_workload(teachers: list, prac_teacher_groups: list, lec_teacher_gro
 def _delete_all_existing() -> None:
     if Group.objects.exists():
         Group.objects.all().delete()
-    # if Teacher.objects.exists():
-    #     Teacher.objects.all().delete()
     if Subject.objects.exists():
         Subject.objects.all().delete()
 
@@ -60,17 +54,6 @@ def _populate_departments() -> None:
     for d in DepartmentEnum:
         department = Department(id=d.id, name=d.value)
         department.save()
-
-
-# def _populate_teachers() -> None:
-#     teachers = parse_teachers()
-#     for teacher in teachers:
-#         teacher.one_rate = 560
-#         teacher.load = 1.0
-#         teacher.position = 'Преподаватель'
-#         teacher.kpi = 'Teacher'
-#         teacher.department_id = DepartmentEnum.computer_engineering.id
-#         teacher.save()
 
 
 def _populate_all_courses_subjects():
@@ -88,14 +71,6 @@ def _populate_groups() -> None:
     groups = parse_groups()
     for group in groups:
         group.save()
-
-
-# def _connect_subject_teacher() -> None:
-#     teachers = Teacher.objects.all()
-#     for teacher in teachers:
-#         subject_names = parse_subjects_for_teacher(teacher)
-#         subjects = Subject.objects.filter(name__in=subject_names)
-#         teacher.subjects.add(*subjects)
 
 
 def _connect_all_group_subject():
