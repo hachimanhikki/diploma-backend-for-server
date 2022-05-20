@@ -4,9 +4,10 @@ from django.shortcuts import render
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from workload.serializers import WorkloadSerializer
+from api.model.serializers import WorkloadSerializer
+from api.model.static_models import HTTPMethod
 
-@api_view(['POST',])
+@api_view([HTTPMethod.post])
 def workload_save(request):
 
     if request.method == 'POST':
@@ -14,7 +15,7 @@ def workload_save(request):
         data = {}
         if serializer.is_valid():
             serializer.save()
-            data['response'] = 'success'
+            data['success'] = True
         else:
             data = serializer.errors
         return Response(data)
