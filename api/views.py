@@ -6,10 +6,13 @@ from api.service.excel_create_service import create_excel_workload
 from accounts.models import Teacher
 from rest_framework.response import Response
 from api.model.static_models import HTTPMethod
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 
 @api_view([HTTPMethod.get])
+@permission_classes([IsAuthenticated])
+# Authorization: Token <token>
 def check(request):
     # populate_database()
     # Workload.objects.all().delete()

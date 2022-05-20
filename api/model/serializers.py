@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from accounts.models import Teacher
 from api.model.models import Group, GroupSubject, Subject, Workload
+from django.db.models import F
 
 
 def group_taken(teacher: Teacher, group_subject: GroupSubject):
@@ -41,10 +42,11 @@ class SubjectSerializer(serializers.ModelSerializer):
 
 
 class GroupSubjectSerializer:
-    def __init__(self, by_subject: bool = False, by_group: bool = False):
+    def __init__(self, by_subject: bool = False, by_group: bool = False, available: bool = False):
         self.data = []
         self.by_subject = by_subject
         self.by_group = by_group
+        self.available = available
         if by_subject:
             self._serialize_by_subject()
         elif by_group:
@@ -52,7 +54,11 @@ class GroupSubjectSerializer:
 
     def _serialize_by_subject(self):
         self.data = []
-        subjects = Subject.objects.exclude(groups=None)
+        if self.available:
+            subjects = Subject.objects.exclude(
+                groups=None).filter(taken_hour__lt=F('total_hour'))
+        else:
+            subjects = Subject.objects.exclude(groups=None)
         for subject in subjects:
             groups_subjects = GroupSubject.objects.filter(
                 subject_id__exact=subject.id).order_by('group__name')
@@ -62,8 +68,12 @@ class GroupSubjectSerializer:
         self.data = []
         groups = Group.objects.exclude(subjects=None)
         for group in groups:
-            groups_subjects = GroupSubject.objects.filter(
-                group__name__exact=group.name).order_by('group__name')
+            if self.available:
+                groups_subjects = GroupSubject.objects.filter(
+                    group__name__exact=group.name, subject__taken_hour__lt=F('subject__total_hour')).order_by('group__name')
+            else:
+                groups_subjects = GroupSubject.objects.filter(
+                    group__name__exact=group.name).order_by('group__name')
             self.data.append(self._groups_subjects_to_dict(groups_subjects))
 
     def _groups_subjects_to_dict(self, groups_subjects: list) -> dict:
@@ -96,21 +106,25 @@ class WorkloadSerializer(serializers.ModelSerializer):
     is_lecture = serializers.BooleanField()
     is_practice = serializers.BooleanField()
     is_lab = serializers.BooleanField()
+
     class Meta:
         model = Workload
-        fields = ('teacher_username', 'subject', 'groups', 'trimester', 'is_lecture', 'is_practice', 'is_lab')
-
-
+        fields = ('teacher_username', 'subject', 'groups',
+                  'trimester', 'is_lecture', 'is_practice', 'is_lab')
 
     def save(self):
-        teacher = Teacher.objects.get(username=self.validated_data['teacher_username'])
-        subject = Subject.objects.get(name=self.validated_data['subject']['name'])
+        teacher = Teacher.objects.get(
+            username=self.validated_data['teacher_username'])
+        subject = Subject.objects.get(
+            name=self.validated_data['subject']['name'])
         for group_name in self.validated_data['groups']:
             group = Group.objects.get(name=group_name['name'])
-            group_subject = GroupSubject.objects.get(subject=subject, group=group)
+            group_subject = GroupSubject.objects.get(
+                subject=subject, group=group)
             if group_taken(teacher, group_subject):
-                workload = Workload.objects.filter(teacher__exact=teacher, group_subject__exact=group_subject)[0]
-                workload.is_lecture = self.validated_data['is_lecture'] or workload.is_lecture 
+                workload = Workload.objects.filter(
+                    teacher__exact=teacher, group_subject__exact=group_subject)[0]
+                workload.is_lecture = self.validated_data['is_lecture'] or workload.is_lecture
                 workload.is_practice = self.validated_data['is_practice'] or workload.is_practice
             else:
                 workload = Workload()

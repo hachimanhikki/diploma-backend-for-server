@@ -2,6 +2,7 @@ from django.db import models
 import api.service.functions as functions
 from config import settings
 
+
 class Department(models.Model):
     name = models.CharField(max_length=100)
 
@@ -29,19 +30,25 @@ class Subject(models.Model):
     name = models.CharField(max_length=200)
     credits = models.IntegerField()
     lecture_count = models.IntegerField(default=0)
+    taken_lectures = models.IntegerField(default=0)
     practice_count = models.IntegerField(default=0)
+    taken_practice = models.IntegerField(default=0)
     office_count = models.IntegerField(default=0)
+    taken_office = models.IntegerField(default=0)
     lab_count = models.IntegerField(default=0)
+    taken_lab = models.IntegerField(default=0)
     lecture_hour = models.IntegerField(default=0)
     practice_hour = models.IntegerField(default=0)
     office_hour = models.IntegerField(default=0)
     lab_hour = models.IntegerField(default=0)
     total_hour = models.IntegerField(default=0)
+    taken_hour = models.IntegerField(default=0)
     excel_row_index = models.IntegerField(null=True)
 
     department = models.ForeignKey(
         Department, null=True, on_delete=models.SET_NULL)
-    teachers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='subjects')
+    teachers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name='subjects')
     groups = models.ManyToManyField(
         Group, related_name='subjects', through='GroupSubject')
 
@@ -90,7 +97,8 @@ class GroupSubject(models.Model):
 
 
 class Workload(models.Model):
-    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     group_subject = models.ForeignKey(
         GroupSubject, null=True, on_delete=models.CASCADE)
     is_lecture = models.BooleanField()
