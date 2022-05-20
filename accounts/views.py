@@ -7,8 +7,7 @@ from accounts.serializers import TeacherSerializer
 
 @api_view([HTTPMethod.post])
 def registration_view(request):
-
-    if request.method == 'POST':
+    if request.method == HTTPMethod.post:
         serializer = TeacherSerializer(data=request.data)
         data = {}
         if serializer.is_valid():
