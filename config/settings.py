@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'flows.apps.FlowsConfig',
     'load.apps.LoadConfig',
     'accounts.apps.AccountsConfig',
+    'workload.apps.WorkloadConfig',
     'rest_framework.authtoken',
 ]
 
