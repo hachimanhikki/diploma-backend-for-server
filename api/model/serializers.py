@@ -103,13 +103,10 @@ class WorkloadSerializer(serializers.ModelSerializer):
     subject = SubjectSerializer(exclude=('groups'))
     groups = GroupSerializer(many=True)
     trimester = serializers.IntegerField()
-<<<<<<< HEAD
     is_lecture = serializers.BooleanField()
     is_practice = serializers.BooleanField()
     is_lab = serializers.BooleanField()
 
-=======
->>>>>>> 7d405dc (improve registration and login)
     class Meta:
         model = Workload
         fields = ('teacher_username', 'subject', 'groups',
