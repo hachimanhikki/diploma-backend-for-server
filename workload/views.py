@@ -15,3 +15,15 @@ def workload_save(request):
         else:
             data = serializer.errors
         return Response(data)
+
+@api_view([HTTPMethod.get])
+def workload_get(request):
+    if request.method == HTTPMethod.post:
+        serializer = WorkloadSerializer(data=request.data)
+        data = {}
+        if serializer.is_valid():
+            serializer.save()
+            data['success'] = True
+        else:
+            data = serializer.errors
+        return Response(data)
