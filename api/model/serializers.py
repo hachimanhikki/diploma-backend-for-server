@@ -120,9 +120,9 @@ class WorkloadSerializer(serializers.ModelSerializer):
         subject = Subject.objects.get(
             id__exact=self.validated_data['subject']['id'])
         for group_name in self.validated_data['groups']:
-            group = Group.objects.get(name=group_name['name'])
+            group = Group.objects.get(name__exact=group_name['name'])
             group_subject = GroupSubject.objects.get(
-                subject=subject, group=group)
+                subject__exact=subject, group__exact=group)
             if group_taken(teacher, group_subject):
                 workload = Workload.objects.filter(
                     teacher__exact=teacher, group_subject__exact=group_subject)[0]
@@ -136,7 +136,16 @@ class WorkloadSerializer(serializers.ModelSerializer):
                 workload.is_lecture = self.validated_data['is_lecture']
                 workload.is_practice = self.validated_data['is_practice']
                 workload.is_lab = self.validated_data['is_lab']
+            if self.validated_data['is_practice']:
+                subject.taken_practice += 1
+                subject.taken_hour += subject.practice_hour
+            if self.validated_data['is_lab']:
+                subject.taken_lab += 1
+                subject.taken_hour += subject.lab_hour
             workload.save()
+        if self.validated_data['is_lecture']:
+            subject.taken_lectures += 1
+            subject.taken_hour += subject.lecture_hour
         subject.teachers.add(teacher)
         subject.save()
         return workload
