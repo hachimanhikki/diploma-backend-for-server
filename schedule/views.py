@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from api.service.db_service import populate_database
 from api.service.save_service import save_file
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -13,8 +12,8 @@ from api.model.error import IncorrectFileType
 def upload(request):
     if request.method == HTTPMethod.post:
         try:
-            save_file(request.FILES[settings.FLOWS_FILE_NAME], True)
-            populate_database()
+            save_file(request.FILES[settings.SCHEDULE_FILE_NAME])
+            # configureSchedule()
             return Response({'success': True})
         except IncorrectFileType as e:
             return Response({'message': e.message}, status=e.status)

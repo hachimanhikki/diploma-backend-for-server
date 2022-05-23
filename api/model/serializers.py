@@ -19,6 +19,8 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class SubjectSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
         exclude = kwargs.pop('exclude', None)
@@ -56,9 +58,9 @@ class GroupSubjectSerializer:
         self.data = []
         if self.available:
             subjects = Subject.objects.exclude(
-                groups=None).filter(taken_hour__lt=F('total_hour'))
+                groups=None).filter(taken_hour__lt=F('total_hour')).order_by("name")
         else:
-            subjects = Subject.objects.exclude(groups=None)
+            subjects = Subject.objects.exclude(groups=None).order_by("name")
         for subject in subjects:
             groups_subjects = GroupSubject.objects.filter(
                 subject_id__exact=subject.id).order_by('group__name')
@@ -114,9 +116,9 @@ class WorkloadSerializer(serializers.ModelSerializer):
 
     def save(self):
         teacher = Teacher.objects.get(
-            username=self.validated_data['teacher_username'])
+            username__exact=self.validated_data['teacher_username'])
         subject = Subject.objects.get(
-            name=self.validated_data['subject']['name'])
+            id__exact=self.validated_data['subject']['id'])
         for group_name in self.validated_data['groups']:
             group = Group.objects.get(name=group_name['name'])
             group_subject = GroupSubject.objects.get(
@@ -126,13 +128,15 @@ class WorkloadSerializer(serializers.ModelSerializer):
                     teacher__exact=teacher, group_subject__exact=group_subject)[0]
                 workload.is_lecture = self.validated_data['is_lecture'] or workload.is_lecture
                 workload.is_practice = self.validated_data['is_practice'] or workload.is_practice
+                workload.is_practice = self.validated_data['is_lab'] or workload.is_lab
             else:
                 workload = Workload()
                 workload.teacher = teacher
                 workload.group_subject = group_subject
                 workload.is_lecture = self.validated_data['is_lecture']
                 workload.is_practice = self.validated_data['is_practice']
-                workload.is_lab = False
+                workload.is_lab = self.validated_data['is_lab']
             workload.save()
-
+        subject.teachers.add(teacher)
+        subject.save()
         return workload

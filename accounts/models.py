@@ -64,7 +64,7 @@ class Teacher(AbstractBaseUser):
     objects = MyTeachertManager()
 
     def __str__(self) -> str:
-        return f"{self.id} {self.full_name} {self.total_hour}"
+        return f"{self.id} {self.first_name} {self.second_name} {self.total_hour}"
 
     def has_perm(self, perm, obj=None):
         return self.is_admin

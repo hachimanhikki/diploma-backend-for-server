@@ -5,12 +5,15 @@ from django.core.files.storage import FileSystemStorage
 from api.model.error import IncorrectFileType
 
 
-def save_file(file) -> None:
+def save_file(file, is_flows: bool = False) -> None:
     file_type = _get_file_type(file.name)
     if file_type not in settings.ALLOWED_MEDIA_TYPE:
         raise IncorrectFileType
     fs = FileSystemStorage()
-    file_name = f'all_data.{file_type}'
+    if is_flows:
+        file_name = f'all_data.{file_type}'
+    else:
+        file_name = f'schedule.{file_type}'
     _remove_exists(fs, file_name)
     fs.save(file_name, file)
 

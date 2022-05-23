@@ -21,6 +21,7 @@ class CustomAuthToken(ObtainAuthToken):
             'username': user.username,
             'token': token.key,
             'email': user.email,
+            'is_head': user.is_admin,
             'department_name': user.department.name
         })
 
@@ -39,6 +40,7 @@ def registration_view(request):
             data['email'] = teacher.email
             token = Token.objects.get(user=teacher).key
             data['token'] = token
+            data['is_head'] = teacher.is_admin
             data['department_name'] = teacher.department.name
         else:
             data = serializer.errors

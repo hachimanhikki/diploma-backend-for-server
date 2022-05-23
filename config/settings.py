@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'flows.apps.FlowsConfig',
-    'load.apps.LoadConfig',
     'accounts.apps.AccountsConfig',
     'workload.apps.WorkloadConfig',
     'rest_framework.authtoken',
@@ -132,7 +131,8 @@ CORS_ALLOWED_ORIGINS = [
 MEDIA_ROOT = os.path.join(BASE_DIR, 'file')
 MEDIA_URL = '/file/'
 ALLOWED_MEDIA_TYPE = ['xlsx']
-UPLOADED_FILE_NAME = 'document'
+FLOWS_FILE_NAME = 'flows_document'
+SCHEDULE_FILE_NAME = 'schedule_document'
 ACADEMIC_LOAD_TEMPLATE_PATH = f'{MEDIA_ROOT}/Нагрузка_template.xlsx'
 ACADEMIC_LOAD_PATH = f'{MEDIA_ROOT}/academic_load'
 

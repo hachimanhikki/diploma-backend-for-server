@@ -1,16 +1,17 @@
-from api.service.excel_parser_service import parse_groups, parse_groups_for_subject, parse_subjects
+from api.service.excel_parser_service import set_workload, parse_groups, parse_groups_for_subject, parse_subjects
 from config.settings import DepartmentEnum
 from api.model.models import Department, Group, Subject, Workload
 courses = [1, 2, 3]
 
 
 def populate_database() -> None:
-    if not Department.objects.exists():
-        _populate_departments()
-    _delete_all_existing()
-    _populate_groups()
-    _populate_all_courses_subjects()
-    _connect_all_group_subject()
+    set_workload()
+    # if not Department.objects.exists():
+    #     _populate_departments()
+    # _delete_all_existing()
+    # _populate_groups()
+    # _populate_all_courses_subjects()
+    # _connect_all_group_subject()
 
 
 def update_teacher_total_hours(teachers: list, hours: list) -> None:

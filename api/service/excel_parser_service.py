@@ -2,27 +2,20 @@ import os
 import openpyxl
 from django.conf import settings
 from api.model.models import Group, Subject
-from accounts.models import Teacher
 from config.settings import DepartmentEnum
 import api.service.functions as functions
 
 
-wb = openpyxl.load_workbook(os.path.join(
-    settings.MEDIA_ROOT, 'all_data.xlsx'), data_only=True)
-teachers_sheet = wb['Преподаватели']
-course_sheet = [0, wb['1 курс'], wb['2 курс'], wb['3 курс']]
-course_educational_programs_count = [0, 11, 9, 8]
-group_sheet = wb['Группы']
+wb = course_sheet = course_educational_programs_count = group_sheet = None
 
 
-def parse_teachers() -> list:
-    teachers = []
-    for i in range(2, teachers_sheet.max_column + 1):
-        teacher_name = teachers_sheet.cell(row=1, column=i).value
-        if teacher_name is not None:
-            teacher = Teacher(full_name=teacher_name, excel_column_index=i)
-            teachers.append(teacher)
-    return teachers
+def set_workload():
+    global wb, course_sheet, course_educational_programs_count, group_sheet
+    wb = openpyxl.load_workbook(os.path.join(
+        settings.MEDIA_ROOT, 'all_data.xlsx'), data_only=True)
+    course_sheet = [0, wb['1 курс'], wb['2 курс'], wb['3 курс']]
+    course_educational_programs_count = [0, 11, 9, 8]
+    group_sheet = wb['Группы']
 
 
 def parse_subjects(course: int) -> list:
@@ -36,15 +29,6 @@ def parse_subjects(course: int) -> list:
                 i, DepartmentEnum.computer_engineering.id, course_sheet[course], course_educational_programs_count[course])
             subjects.append(subject)
     return subjects
-
-
-def parse_subjects_for_teacher(teacher: Teacher) -> list:
-    subject_names = []
-    for i in range(2, teachers_sheet.max_row + 1):
-        if teachers_sheet.cell(row=i, column=teacher.excel_column_index).value is not None:
-            subject_name = teachers_sheet.cell(row=i, column=1).value
-            subject_names.append(functions.formated(subject_name))
-    return subject_names
 
 
 def parse_groups() -> list:
