@@ -1,6 +1,8 @@
-from api.service.excel_parser_service import set_workload, parse_groups, parse_groups_for_subject, parse_subjects
+from calendar import week
+from api.service.excel_parser_service import set_schedule_workload, set_workload, parse_groups, parse_groups_for_subject, parse_subjects, parse_schedule
 from config.settings import DepartmentEnum
-from api.model.models import Department, Group, Subject, Workload
+from api.model.models import Department, Group, GroupSubject, Subject, Workload, Schedule
+from accounts.models import Teacher
 courses = [1, 2, 3]
 
 
@@ -12,6 +14,38 @@ def populate_database() -> None:
     # _populate_groups()
     # _populate_all_courses_subjects()
     # _connect_all_group_subject()
+
+
+def populate_schedule() -> None:
+    if Schedule.objects.exists():
+        Schedule.objects.all().delete()
+    set_schedule_workload()
+    schedules = parse_schedule()
+    for schedule in schedules:
+        for group_name, days_list in schedule.items():
+            for days_objects in days_list:
+                for week_day, info_for_times in days_objects.items():
+                    for info in info_for_times:
+                        time, subject_name, classroom, type, teacher_name = info
+                        groups_subjects = GroupSubject.objects.filter(
+                            group__name__exact=group_name, subject__name__exact=subject_name)
+                        first_name, second_name = teacher_name.split() if len(
+                            teacher_name.split()) == 2 else ["", ""]
+                        possible_teacher = Teacher.objects.filter(
+                            first_name__exact=first_name, second_name__exact=second_name)
+                        if len(possible_teacher) == 0:
+                            break
+                        teacher = possible_teacher[0]
+                        for group_subject in groups_subjects:
+                            schedule_model = Schedule()
+                            schedule_model.group_subject = group_subject
+                            schedule_model.week_day = week_day
+                            schedule_model.time = time
+                            schedule_model.classroom = classroom
+                            schedule_model.is_lecture = type == 'lecture'
+                            schedule_model.is_practice = type == 'practice'
+                            schedule_model.teacher = teacher
+                            schedule_model.save()
 
 
 def update_teacher_total_hours(teachers: list, hours: list) -> None:
