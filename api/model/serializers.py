@@ -105,14 +105,13 @@ class WorkloadGETSerializer:
         self.data = []
         self.all = all
         self.by_teacher = by_teacher
- 
+
         if all:
             self.data = []
             self._serialize_all()
         elif by_teacher:
             self.data = {}
             self._serialize_by_teacher(teacher_name)
-
 
     def _groups_subjects_get_by(self, lec: bool, teacher: Teacher):
         if lec:
@@ -123,14 +122,18 @@ class WorkloadGETSerializer:
             teacher_workloads = Workload.objects.filter(
                 teacher_id__exact=teacher.id, is_practice=True).order_by('group_subject__subject__name', 'group_subject__group__name')
             str_key = 'prac'
-        teacher_subjects = teacher_workloads.values_list('group_subject__subject')
+        teacher_subjects = set(
+            teacher_workloads.values_list('group_subject__subject'))
         for subject in teacher_subjects:
             subject_ins = Subject.objects.get(id__exact=subject[0])
-            trimester = Workload.objects.filter(teacher_id__exact=teacher.id, group_subject__subject__exact=subject).values_list('group_subject__trimester')
-            groups = Workload.objects.filter(teacher_id__exact=teacher.id, group_subject__subject__exact=subject).values_list('group_subject__group')
-            groups_ins = [Group.objects.get(name__exact=group[0]) for group in groups]
-            self.data[str_key].append(self._groups_subjects_to_dict(subject=subject_ins, groups=groups_ins, trimester=trimester[0][0]))
-
+            trimester = Workload.objects.filter(
+                teacher_id__exact=teacher.id, group_subject__subject__exact=subject).values_list('group_subject__trimester')
+            groups = Workload.objects.filter(
+                teacher_id__exact=teacher.id, group_subject__subject__exact=subject).values_list('group_subject__group')
+            groups_ins = [Group.objects.get(
+                name__exact=group[0]) for group in groups]
+            self.data[str_key].append(self._groups_subjects_to_dict(
+                subject=subject_ins, groups=groups_ins, trimester=trimester[0][0]))
 
     def _serialize_by_teacher(self, teacher_name):
         self.data = {}
@@ -138,7 +141,6 @@ class WorkloadGETSerializer:
         self.data['lec'] = []
         groups = []
         teacher = Teacher.objects.get(username__exact=teacher_name)
-        
 
         self.data['teacher'] = {
             'username': teacher.username,
@@ -152,7 +154,6 @@ class WorkloadGETSerializer:
         self._groups_subjects_get_by(lec=True, teacher=teacher)
         self._groups_subjects_get_by(lec=False, teacher=teacher)
 
-
     def _serialize_all(self):
         self.data = []
         workloads = Workload.objects.all()
@@ -160,19 +161,13 @@ class WorkloadGETSerializer:
         for teacher in teachers:
             self.data.append(self._serialize_by_teacher(teacher.name))
 
-
     def _groups_subjects_to_dict(self, subject: Subject, groups: list, trimester: int) -> dict:
-        print(subject, "***********", groups, "***********", trimester)
         res = {
             'subject': SubjectSerializer(subject, exclude=('groups', 'teachers')).data,
             'groups': [GroupSerializer(group).data for group in groups],
             'trimester': trimester,
         }
         return res
-
-
-    
-
 
 
 class WorkloadSerializer(serializers.ModelSerializer):

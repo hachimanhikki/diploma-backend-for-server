@@ -37,5 +37,6 @@ def workload_save(request):
 @api_view([HTTPMethod.get])
 @permission_classes([IsAuthenticated])
 def workload_get(request):
-    serializer = WorkloadGETSerializer(teacher_name=request.data['teacher_username'], by_teacher=True)
+    serializer = WorkloadGETSerializer(
+        teacher_name=request.query_params['teacher_username'], by_teacher=True)
     return Response(serializer.data)
