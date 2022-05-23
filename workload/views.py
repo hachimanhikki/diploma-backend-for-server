@@ -2,21 +2,26 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from api.model.static_models import HTTPMethod
 from api.model.serializers import GroupSubjectSerializer, WorkloadSerializer
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 
 @api_view([HTTPMethod.get])
+@permission_classes([IsAuthenticated])
 def available_by_subject(request):
     serializer = GroupSubjectSerializer(by_subject=True, available=True)
     return Response(serializer.data)
 
 
 @api_view([HTTPMethod.get])
+@permission_classes([IsAuthenticated])
 def available_by_group(request):
     serializer = GroupSubjectSerializer(by_group=True, available=True)
     return Response(serializer.data)
 
 
 @api_view([HTTPMethod.post])
+@permission_classes([IsAuthenticated])
 def workload_save(request):
     if request.method == HTTPMethod.post:
         serializer = WorkloadSerializer(data=request.data)
@@ -30,6 +35,7 @@ def workload_save(request):
 
 
 @api_view([HTTPMethod.get])
+@permission_classes([IsAuthenticated])
 def workload_get(request):
     serializer = WorkloadSerializer(data=request.data)
     data = {}
