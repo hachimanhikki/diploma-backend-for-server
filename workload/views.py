@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from api.model.static_models import HTTPMethod
-from api.model.serializers import GroupSubjectSerializer, WorkloadSerializer
+from api.model.serializers import GroupSubjectSerializer, WorkloadSerializer, WorkloadGETSerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
@@ -37,11 +37,5 @@ def workload_save(request):
 @api_view([HTTPMethod.get])
 @permission_classes([IsAuthenticated])
 def workload_get(request):
-    serializer = WorkloadSerializer(data=request.data)
-    data = {}
-    if serializer.is_valid():
-        serializer.save()
-        data['success'] = True
-    else:
-        data = serializer.errors
-    return Response(data)
+    serializer = WorkloadGETSerializer(teacher_name=request.data['teacher_username'], by_teacher=True)
+    return Response(serializer.data)
