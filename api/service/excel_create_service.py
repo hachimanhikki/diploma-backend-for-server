@@ -12,13 +12,14 @@ from openpyxl.styles import Border, Side, Font
 wb = workload_sheet = None
 
 
-def create_excel_workload() -> None:
+def create_excel_workload() -> Workbook:
     global wb, workload_sheet
     create_excel_doc(ACADEMIC_LOAD_TEMPLATE_PATH, _excel_doc_path())
     wb = openpyxl.load_workbook(_excel_doc_path())
     workload_sheet = wb['Нагрузка']
     _populate_workload()
     wb.save(_excel_doc_path())
+    return wb
 
 
 def create_excel_workload_for_teacher(teacher_username: str) -> Workbook:
@@ -29,24 +30,25 @@ def create_excel_workload_for_teacher(teacher_username: str) -> Workbook:
     wb = openpyxl.load_workbook(_excel_doc_path_teacher(
         teacher.first_name, teacher.second_name))
     workload_sheet = wb['Нагрузка']
-    _populate_workload_for_teacher(teacher)
+    _populate_workload_for_teacher(teacher, start_row_index=7)
     wb.save(_excel_doc_path_teacher(teacher.first_name, teacher.second_name))
     return wb
 
 
 def _populate_workload() -> None:
     all_teacher = Teacher.objects.all()
+    row_index = 7
     for teacher in all_teacher:
-        _populate_workload_for_teacher(teacher)
+        row_index += _populate_workload_for_teacher(teacher, row_index)
     wb.save(_excel_doc_path())
 
 
-def _populate_workload_for_teacher(teacher: Teacher) -> None:
-    row_index = 7
+def _populate_workload_for_teacher(teacher: Teacher, start_row_index: int) -> int:
+    row_index = start_row_index
     teacher_workloads = Workload.objects.filter(
         teacher_id__exact=teacher.id).order_by('group_subject__subject__name', 'group_subject__group__name')
     if not teacher_workloads:
-        return
+        return 0
     teacher_subjects = set(teacher_workloads.values_list(
         'group_subject__subject__name', 'group_subject__subject__office_hour'))
     start_row_index = row_index
@@ -72,6 +74,7 @@ def _populate_workload_for_teacher(teacher: Teacher) -> None:
     _configure_teacher_cell(teacher, start_row_index, row_index)
     _set_borders(row_index)
     row_index += 1
+    return row_index - start_row_index
 
 
 def _set_borders(row_index: int) -> None:

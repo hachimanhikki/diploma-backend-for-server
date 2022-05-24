@@ -19,5 +19,6 @@ def check(request):
     # Teacher.objects.all().update(total_hour=0)
     # calculate_workload()
     # create_excel_workload()
-    populate_schedule()
+    # populate_schedule()
+    # create_excel_workload()
     return Response({'success': 12})
