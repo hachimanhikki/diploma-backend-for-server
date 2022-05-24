@@ -22,6 +22,11 @@ def create_excel_doc(template_path: str, workload_path: str) -> None:
     shutil.copy(template_path, workload_path)
 
 
+def is_file_exists(file_name: str) -> bool:
+    fs = FileSystemStorage()
+    return fs.exists(file_name)
+
+
 def _get_file_type(file_name: str) -> str:
     return file_name.split('.')[-1]
 

@@ -1,5 +1,5 @@
 from django.conf import settings
-from api.model.models import Workload
+from api.model.models import Subject, Workload
 from api.service.algorithm_service import calculate_workload
 from api.service.db_service import populate_database, populate_schedule
 from api.service.excel_create_service import create_excel_workload

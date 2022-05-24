@@ -7,4 +7,5 @@ urlpatterns = [
     path('get', views.workload_get),
     path('available/by_subject', views.available_by_subject),
     path('available/by_group', views.available_by_group),
+    path('download', views.download),
 ]
