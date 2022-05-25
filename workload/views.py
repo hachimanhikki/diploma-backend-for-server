@@ -37,6 +37,7 @@ def workload_save(request):
             data = serializer.errors
         return Response(data)
 
+
 @api_view([HTTPMethod.post])
 @permission_classes([IsAuthenticated])
 def workload_edit(request):
@@ -49,6 +50,7 @@ def workload_edit(request):
         else:
             data = serializer.errors
         return Response(data)
+
 
 @api_view([HTTPMethod.get])
 @permission_classes([IsAuthenticated])
@@ -69,14 +71,16 @@ def workload_get_all(request):
 @permission_classes([IsAuthenticated])
 def workload_delete(request):
     username = request.data['teacher_username']
-    subject_name = request.data['subject_name']
+    subject_id = request.data['subject']['id']
     teacher = Teacher.objects.get(username__exact=username)
-    subject = Subject.objects.get(name__exact=subject_name)
-    teacher, subject = refresh_teacher_and_subject(teacher, subject, refresh=True)
+    subject = Subject.objects.get(id__exact=subject_id)
+    teacher, subject = refresh_teacher_and_subject(
+        teacher, subject, refresh=True)
     subject.teachers.remove(teacher)
     teacher.save()
     subject.save()
-    Workload.objects.filter(group_subject__subject__exact=subject, teacher__exact=teacher).delete()
+    Workload.objects.filter(
+        group_subject__subject__exact=subject, teacher__exact=teacher).delete()
     return Response({"success": True})
 
 
