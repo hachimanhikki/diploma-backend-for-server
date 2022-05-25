@@ -8,6 +8,35 @@ def group_taken(teacher: Teacher, group_subject: GroupSubject):
     if len(Workload.objects.filter(teacher__exact=teacher, group_subject__exact=group_subject)) == 1:
         return True
 
+def get_refresh_data(teacher: Teacher, subject: Subject):
+    office_mod = 0
+    lec_mod = 0
+    no_of_prac_groups = Workload.objects.filter(is_practice=True, teacher__exact=teacher, group_subject__subject__exact=subject).count()
+    no_of_lab_groups = Workload.objects.filter(is_lab=True, teacher__exact=teacher, group_subject__subject__exact=subject).count()
+    if Workload.objects.filter(is_lecture=True, teacher__exact=teacher, group_subject__subject__exact=subject).count() > 0:
+        lec_mod = 1
+    if teacher in subject.teachers.all():
+        office_mod = 1
+    total_hour_by_subject = subject.practice_hour * no_of_prac_groups + subject.lecture_hour * lec_mod + subject.lab_hour * no_of_lab_groups + subject.office_hour * office_mod
+    return {'total_hour': total_hour_by_subject,
+            'prac_groups': no_of_prac_groups,
+            'lab_groups': no_of_lab_groups,
+            'is_lec': lec_mod,
+            'is_office': office_mod
+    }
+
+
+def refresh_teacher_and_subject(teacher: Teacher, subject: Subject, refresh: bool):
+    modifier = -1 if refresh else 1
+    refresh_data = get_refresh_data(teacher=teacher, subject=subject)
+    teacher.total_hour += modifier * refresh_data['total_hour']
+    subject.taken_hour += modifier * refresh_data['total_hour']
+    subject.taken_lectures += modifier * 1 if refresh_data['is_lec'] else 0
+    subject.taken_practice += modifier * refresh_data['prac_groups']
+    subject.taken_lab += modifier * refresh_data['lab_groups']
+    subject.office_count += modifier * 1 if refresh_data['is_office'] else 0
+    return teacher, subject
+
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
