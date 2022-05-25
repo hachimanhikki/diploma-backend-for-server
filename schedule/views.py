@@ -39,6 +39,8 @@ def file_name(request):
 @permission_classes([IsAuthenticated])
 def download(request):
     file_name = 'schedule.xlsx'
+    if not is_file_exists(file_name):
+        return Response({'message': FileDoesntExists.message}, status=FileDoesntExists.status)
     wb = openpyxl.load_workbook(os.path.join(settings.MEDIA_ROOT, file_name))
     print(wb)
     response = HttpResponse(content_type='application/vnd.ms-excel')
