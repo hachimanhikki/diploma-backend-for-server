@@ -1,5 +1,7 @@
 from datetime import date
+import os
 import openpyxl
+from openpyxl import Workbook
 from api.service.save_service import create_excel_doc
 from config.settings import ACADEMIC_LOAD_TEMPLATE_PATH, ACADEMIC_LOAD_PATH
 from api.model.models import Workload
@@ -10,48 +12,69 @@ from openpyxl.styles import Border, Side, Font
 wb = workload_sheet = None
 
 
-def create_excel_workload() -> None:
+def create_excel_workload() -> Workbook:
     global wb, workload_sheet
     create_excel_doc(ACADEMIC_LOAD_TEMPLATE_PATH, _excel_doc_path())
     wb = openpyxl.load_workbook(_excel_doc_path())
     workload_sheet = wb['Нагрузка']
     _populate_workload()
+    wb.save(_excel_doc_path())
+    return wb
+
+
+def create_excel_workload_for_teacher(teacher_username: str) -> Workbook:
+    global wb, workload_sheet
+    teacher = Teacher.objects.get(username__exact=teacher_username)
+    create_excel_doc(ACADEMIC_LOAD_TEMPLATE_PATH, _excel_doc_path_teacher(
+        teacher.first_name, teacher.second_name))
+    wb = openpyxl.load_workbook(_excel_doc_path_teacher(
+        teacher.first_name, teacher.second_name))
+    workload_sheet = wb['Нагрузка']
+    _populate_workload_for_teacher(teacher, start_row_index=7)
+    wb.save(_excel_doc_path_teacher(teacher.first_name, teacher.second_name))
+    return wb
 
 
 def _populate_workload() -> None:
     all_teacher = Teacher.objects.all()
     row_index = 7
     for teacher in all_teacher:
-        teacher_workloads = Workload.objects.filter(
-            teacher_id__exact=teacher.id).order_by('group_subject__subject__name', 'group_subject__group__name')
-        if not teacher_workloads:
-            continue
-        teacher_subjects = set(teacher_workloads.values_list(
-            'group_subject__subject__name', 'group_subject__subject__office_hour'))
-        start_row_index = row_index
-        for subject_name, office_hour in teacher_subjects:
-            workload_sheet.cell(row=row_index, column=16).value = office_hour
-            teacher_lecture_workloads = teacher_workloads.filter(
-                group_subject__subject__name__exact=subject_name, is_lecture__exact=True)
-            teacher_practice_workloads = teacher_workloads.filter(
-                group_subject__subject__name__exact=subject_name, is_practice__exact=True)
-            teacher_lab_workloads = teacher_workloads.filter(
-                group_subject__subject__name__exact=subject_name, is_lab__exact=True)
-            if teacher_lecture_workloads:
-                _configure_lecture_cells(teacher_lecture_workloads, row_index)
-                row_index += 1
-            if teacher_practice_workloads:
-                _configure_cells(teacher_practice_workloads,
-                                 row_index, is_practice=True)
-                row_index += len(teacher_practice_workloads)
-            if teacher_lab_workloads:
-                _configure_cells(teacher_lab_workloads, row_index, is_lab=True)
-                row_index += len(teacher_lab_workloads)
-        _merge_column(start_row_index, row_index)
-        _configure_teacher_cell(teacher, start_row_index, row_index)
-        _set_borders(row_index)
-        row_index += 1
+        row_index += _populate_workload_for_teacher(teacher, row_index)
     wb.save(_excel_doc_path())
+
+
+def _populate_workload_for_teacher(teacher: Teacher, start_row_index: int) -> int:
+    row_index = start_row_index
+    teacher_workloads = Workload.objects.filter(
+        teacher_id__exact=teacher.id).order_by('group_subject__subject__name', 'group_subject__group__name')
+    if not teacher_workloads:
+        return 0
+    teacher_subjects = set(teacher_workloads.values_list(
+        'group_subject__subject__name', 'group_subject__subject__office_hour'))
+    start_row_index = row_index
+    for subject_name, office_hour in teacher_subjects:
+        workload_sheet.cell(row=row_index, column=16).value = office_hour
+        teacher_lecture_workloads = teacher_workloads.filter(
+            group_subject__subject__name__exact=subject_name, is_lecture__exact=True)
+        teacher_practice_workloads = teacher_workloads.filter(
+            group_subject__subject__name__exact=subject_name, is_practice__exact=True)
+        teacher_lab_workloads = teacher_workloads.filter(
+            group_subject__subject__name__exact=subject_name, is_lab__exact=True)
+        if teacher_lecture_workloads:
+            _configure_lecture_cells(teacher_lecture_workloads, row_index)
+            row_index += 1
+        if teacher_practice_workloads:
+            _configure_cells(teacher_practice_workloads,
+                             row_index, is_practice=True)
+            row_index += len(teacher_practice_workloads)
+        if teacher_lab_workloads:
+            _configure_cells(teacher_lab_workloads, row_index, is_lab=True)
+            row_index += len(teacher_lab_workloads)
+    _merge_column(start_row_index, row_index)
+    _configure_teacher_cell(teacher, start_row_index, row_index)
+    _set_borders(row_index)
+    row_index += 1
+    return row_index - start_row_index
 
 
 def _set_borders(row_index: int) -> None:
@@ -103,8 +126,9 @@ def _set_fonts(row_index: int) -> None:
 
 
 def _configure_teacher_cell(teacher: Teacher, start_row_index: int, end_row_index: int) -> None:
+    full_name = f"{teacher.first_name} {teacher.second_name}"
     workload_sheet.cell(row=start_row_index,
-                        column=2).value = teacher.full_name
+                        column=2).value = full_name
     workload_sheet.cell(row=start_row_index, column=3).value = teacher.position
     workload_sheet.cell(row=start_row_index, column=4).value = teacher.kpi
     workload_sheet.cell(row=start_row_index, column=5).value = teacher.one_rate
@@ -142,6 +166,13 @@ def _configure_workload_cell(workload: Workload, row_index: int, is_practice: bo
 def _formatted_current_date() -> None:
     today = date.today()
     return date.strftime(today, "%d.%m.%Y")
+
+
+def _excel_doc_path_teacher(first_name: str, second_name: str) -> None:
+    directory = f"{ACADEMIC_LOAD_PATH}/{first_name} {second_name}"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    return f"{directory}/Нагрузка {_formatted_current_date()}.xlsx"
 
 
 def _excel_doc_path() -> None:

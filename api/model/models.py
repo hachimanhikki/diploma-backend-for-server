@@ -107,3 +107,18 @@ class Workload(models.Model):
 
     class Meta:
         db_table = 'workload'
+
+
+class Schedule(models.Model):
+    group_subject = models.ForeignKey(
+        GroupSubject, null=True, on_delete=models.CASCADE)
+    week_day = models.CharField(max_length=20)
+    time = models.CharField(max_length=200)
+    classroom = models.CharField(max_length=200)
+    is_lecture = models.BooleanField()
+    is_practice = models.BooleanField()
+    teacher = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'schedule'

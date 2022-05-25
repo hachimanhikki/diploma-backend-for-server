@@ -1,7 +1,7 @@
 from django.conf import settings
-from api.model.models import Workload
+from api.model.models import Subject, Workload
 from api.service.algorithm_service import calculate_workload
-from api.service.db_service import populate_database
+from api.service.db_service import populate_database, populate_schedule
 from api.service.excel_create_service import create_excel_workload
 from accounts.models import Teacher
 from rest_framework.response import Response
@@ -11,12 +11,14 @@ from rest_framework.permissions import IsAuthenticated
 
 
 @api_view([HTTPMethod.get])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 # Authorization: Token <token>
 def check(request):
     # populate_database()
     # Workload.objects.all().delete()
     # Teacher.objects.all().update(total_hour=0)
     # calculate_workload()
+    # create_excel_workload()
+    # populate_schedule()
     # create_excel_workload()
     return Response({'success': 12})
