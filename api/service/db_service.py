@@ -1,8 +1,11 @@
 from calendar import week
+from api.model.static_models import KPI
 from api.service.excel_parser_service import set_schedule_workload, set_workload, parse_groups, parse_groups_for_subject, parse_subjects, parse_schedule
 from config.settings import DepartmentEnum
 from api.model.models import Department, Group, GroupSubject, Subject, Workload, Schedule
 from accounts.models import Teacher
+
+
 courses = [1, 2, 3]
 
 
@@ -76,6 +79,20 @@ def populate_workload(teachers: list, prac_teacher_groups: list, lec_teacher_gro
             prac_range[1] += prac_teacher_groups[i + 1]
             lec_range[0] += lec_teacher_groups[i]
             lec_range[1] += lec_teacher_groups[i + 1]
+
+
+def groups_statistic():
+    res = {}
+    for course in courses:
+        res[course] = Group.objects.filter(course__exact=course)
+    return res
+
+
+def teacher_statistic():
+    res = {}
+    for kpi in KPI.all:
+        res[kpi] = Teacher.objects.filter(kpi__exact=kpi)
+    return res
 
 
 def _delete_all_existing() -> None:
