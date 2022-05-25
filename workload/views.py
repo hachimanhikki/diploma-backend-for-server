@@ -27,12 +27,24 @@ def workload_save(request):
         serializer = WorkloadSerializer(data=request.data)
         data = {}
         if serializer.is_valid():
-            serializer.save()
+            serializer.save_data()
             data['success'] = True
         else:
             data = serializer.errors
         return Response(data)
 
+@api_view([HTTPMethod.post])
+@permission_classes([IsAuthenticated])
+def workload_edit(request):
+    if request.method == HTTPMethod.post:
+        serializer = WorkloadSerializer(data=request.data)
+        data = {}
+        if serializer.is_valid():
+            serializer.edit_data()
+            data['success'] = True
+        else:
+            data = serializer.errors
+        return Response(data)
 
 @api_view([HTTPMethod.get])
 @permission_classes([IsAuthenticated])

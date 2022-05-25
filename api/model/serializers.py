@@ -124,10 +124,14 @@ class WorkloadGETSerializer:
                 teacher_id__exact=teacher.id, is_practice=True).order_by('group_subject__subject__name', 'group_subject__group__name')
             str_key = 'prac'
         teacher_subjects = teacher_workloads.values_list('group_subject__subject')
+        teacher_subjects = set(teacher_subjects)
         for subject in teacher_subjects:
             subject_ins = Subject.objects.get(id__exact=subject[0])
             trimester = Workload.objects.filter(teacher_id__exact=teacher.id, group_subject__subject__exact=subject).values_list('group_subject__trimester')
-            groups = Workload.objects.filter(teacher_id__exact=teacher.id, group_subject__subject__exact=subject).values_list('group_subject__group')
+            if lec:
+                groups = Workload.objects.filter(teacher_id__exact=teacher.id, group_subject__subject__exact=subject, is_lecture__exact=True).values_list('group_subject__group')
+            else:
+                groups = Workload.objects.filter(teacher_id__exact=teacher.id, group_subject__subject__exact=subject, is_practice__exact=True).values_list('group_subject__group')
             groups_ins = [Group.objects.get(name__exact=group[0]) for group in groups]
             self.data[str_key].append(self._groups_subjects_to_dict(subject=subject_ins, groups=groups_ins, trimester=trimester[0][0]))
 
@@ -177,50 +181,120 @@ class WorkloadGETSerializer:
 
 class WorkloadSerializer(serializers.ModelSerializer):
     teacher_username = serializers.CharField()
-    subject = SubjectSerializer(exclude=('groups'))
+    subject = SubjectSerializer(exclude=('groups', 'teachers'))
     groups = GroupSerializer(many=True)
     trimester = serializers.IntegerField()
     is_lecture = serializers.BooleanField()
     is_practice = serializers.BooleanField()
     is_lab = serializers.BooleanField()
 
+
     class Meta:
         model = Workload
         fields = ('teacher_username', 'subject', 'groups',
                   'trimester', 'is_lecture', 'is_practice', 'is_lab')
+    
 
-    def save(self):
-        teacher = Teacher.objects.get(
-            username__exact=self.validated_data['teacher_username'])
-        subject = Subject.objects.get(
-            id__exact=self.validated_data['subject']['id'])
+    def _get_refresh_data(self, teacher: Teacher, subject: Subject):
+        office_mod = 0
+        lec_mod = 0
+        no_of_prac_groups = Workload.objects.filter(is_practice=True, teacher__exact=teacher, group_subject__subject__exact=subject).count()
+        no_of_lab_groups = Workload.objects.filter(is_lab=True, teacher__exact=teacher, group_subject__subject__exact=subject).count()
+        if Workload.objects.filter(is_lecture=True, teacher__exact=teacher, group_subject__subject__exact=subject).count() > 0:
+            lec_mod = 1
+        if teacher in subject.teachers.all():
+            office_mod = 1
+        total_hour_by_subject = subject.practice_hour * no_of_prac_groups + subject.lecture_hour * lec_mod + subject.lab_hour * no_of_lab_groups + subject.office_hour * office_mod
+        return {'total_hour': total_hour_by_subject,
+                'prac_groups': no_of_prac_groups,
+                'lab_groups': no_of_lab_groups,
+                'is_lec': lec_mod,
+                'is_office': office_mod
+        }
+
+
+    def _refresh_teacher_and_subject(self, teacher: Teacher, subject: Subject, refresh: bool):
+        modifier = -1 if refresh else 1
+        refresh_data = self._get_refresh_data(teacher=teacher, subject=subject)
+        teacher.total_hour += modifier * refresh_data['total_hour']
+        subject.taken_hour += modifier * refresh_data['total_hour']
+        subject.taken_lectures += modifier * 1 if refresh_data['is_lec'] else 0
+        subject.taken_practice += modifier * refresh_data['prac_groups']
+        subject.taken_lab += modifier * refresh_data['lab_groups']
+        subject.office_count += modifier * 1 if refresh_data['is_office'] else 0
+        return teacher, subject
+
+    def _save_workload(self, teacher: Teacher, subject: Subject):
+        teacher, subject = self._refresh_teacher_and_subject(teacher=teacher, subject=subject, refresh=True)
+        print("_________START_teacher_total_hour_________", teacher.total_hour, "_________START_teacher_total_hour_________")
         for group_name in self.validated_data['groups']:
             group = Group.objects.get(name__exact=group_name['name'])
             group_subject = GroupSubject.objects.get(
                 subject__exact=subject, group__exact=group)
             if group_taken(teacher, group_subject):
+                print('#####LEC#####', self.validated_data['is_lecture'],
+                      '#####PRAC#####', self.validated_data['is_practice'],
+                      '#####LAB#####', self.validated_data['is_lab'], '##########')
                 workload = Workload.objects.filter(
                     teacher__exact=teacher, group_subject__exact=group_subject)[0]
                 workload.is_lecture = self.validated_data['is_lecture'] or workload.is_lecture
                 workload.is_practice = self.validated_data['is_practice'] or workload.is_practice
-                workload.is_practice = self.validated_data['is_lab'] or workload.is_lab
+                workload.is_lab = self.validated_data['is_lab'] or workload.is_lab
+                print('#####LEC#####', workload.is_lecture,
+                      '#####PRAC#####', workload.is_practice,
+                      '#####LAB#####', workload.is_lab, '##########')
             else:
                 workload = Workload()
                 workload.teacher = teacher
                 workload.group_subject = group_subject
+                print('#####LEC#####', self.validated_data['is_lecture'],
+                      '#####PRAC#####', self.validated_data['is_practice'],
+                      '#####LAB#####', self.validated_data['is_lab'], '##########')
                 workload.is_lecture = self.validated_data['is_lecture']
                 workload.is_practice = self.validated_data['is_practice']
                 workload.is_lab = self.validated_data['is_lab']
-            if self.validated_data['is_practice']:
-                subject.taken_practice += 1
-                subject.taken_hour += subject.practice_hour
-            if self.validated_data['is_lab']:
-                subject.taken_lab += 1
-                subject.taken_hour += subject.lab_hour
             workload.save()
-        if self.validated_data['is_lecture']:
-            subject.taken_lectures += 1
-            subject.taken_hour += subject.lecture_hour
-        subject.teachers.add(teacher)
+        if teacher not in subject.teachers.all():
+            subject.teachers.add(teacher)
+        teacher, subject = self._refresh_teacher_and_subject(teacher=teacher, subject=subject, refresh=False)
+        print("_________END_teacher_total_hour_________", teacher.total_hour, "_________END_teacher_total_hour_________")
+        teacher.save()
         subject.save()
-        return workload
+
+
+    def edit_data(self):
+        teacher = Teacher.objects.get(
+            username__exact=self.validated_data['teacher_username'])
+        subject = Subject.objects.get(
+            id__exact=self.validated_data['subject']['id'])
+
+        # retrieve taken hour by deleted groups
+        prac_groups = Workload.objects.filter(teacher__exact=teacher, group_subject__subject__exact=subject, is_practice__exact=True).count()
+        lab_groups = Workload.objects.filter(teacher__exact=teacher, group_subject__subject__exact=subject, is_lab__exact=True).count()
+        is_lec = Workload.objects.filter(teacher__exact=teacher, group_subject__subject__exact=subject, is_lecture__exact=True).count()
+        print("_____prac_groups_____", prac_groups, "_____prac_groups_____")
+        print("_____prac_groups_____", lab_groups, "_____prac_groups_____")
+        print("_____is_lec_____", is_lec, "_____is_lec_____")
+        print("_________subject_taken_hour_________", subject.taken_hour, "_________subject_taken_hour_________")
+        print("_________teacher_total_hour_________", teacher.total_hour, "_________teacher_total_hour_________")
+        subject.taken_practice -= prac_groups
+        subject.taken_lectures -= 1 if is_lec else 0
+        deleted_taken_hour = subject.practice_hour * prac_groups + subject.lecture_hour * 1 if is_lec else 0 + subject.lab_hour * lab_groups + subject.office_hour
+        subject.taken_hour -= deleted_taken_hour
+        teacher.total_hour -= deleted_taken_hour
+        # delete all workload records and replace them with new groups
+        print("_________deleted_taken_hour_________", deleted_taken_hour, "_________deleted_taken_hour_________")
+        print("_________subject_taken_hour_________", subject.taken_hour, "_________subject_taken_hour_________")
+        print("_________teacher_total_hour_________", teacher.total_hour, "_________teacher_total_hour_________")
+        Workload.objects.filter(group_subject__subject__name__exact=subject.name, teacher__exact=teacher).delete()
+        self._save_workload(subject=subject, teacher=teacher)
+        return None
+
+
+    def save_data(self):
+        teacher = Teacher.objects.get(
+            username__exact=self.validated_data['teacher_username'])
+        subject = Subject.objects.get(
+            id__exact=self.validated_data['subject']['id'])
+        self._save_workload(subject=subject, teacher=teacher)
+        return None
