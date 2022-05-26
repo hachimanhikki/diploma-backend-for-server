@@ -118,9 +118,17 @@ class GroupSubjectSerializer:
 
         if self.by_subject:
             subject = groups_subjects[0].subject
+            groups = []
+            taken_groups = Workload.objects.filter(
+                group_subject__subject__exact=subject).values_list('group_subject__group')
+            taken_groups_ins = [Group.objects.get(
+                name__exact=taken_group[0]) for taken_group in taken_groups]
+            for group_subject in groups_subjects:
+                if group_subject.group not in taken_groups_ins:
+                    groups.append(GroupSerializer(group_subject.group).data)
             res = {
                 'subject': SubjectSerializer(subject, exclude=('groups')).data,
-                'groups': [GroupSerializer(group_subject.group).data for group_subject in groups_subjects],
+                'groups': groups,
                 'trimester': trimester,
             }
         elif self.by_group:
