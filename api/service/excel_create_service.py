@@ -6,7 +6,7 @@ from api.service.save_service import create_excel_doc
 from config.settings import ACADEMIC_LOAD_TEMPLATE_PATH, ACADEMIC_LOAD_PATH
 from api.model.models import Workload
 from accounts.models import Teacher
-from openpyxl.styles import Border, Side, Font
+from openpyxl.styles import Border, Side, Font, Alignment
 
 
 wb = workload_sheet = None
@@ -51,7 +51,6 @@ def _populate_workload_for_teacher(teacher: Teacher, start_row_index: int) -> in
         return 0
     teacher_subjects = set(teacher_workloads.values_list(
         'group_subject__subject__name', 'group_subject__subject__office_hour'))
-    start_row_index = row_index
     for subject_name, office_hour in teacher_subjects:
         workload_sheet.cell(row=row_index, column=16).value = office_hour
         teacher_lecture_workloads = teacher_workloads.filter(
@@ -62,27 +61,46 @@ def _populate_workload_for_teacher(teacher: Teacher, start_row_index: int) -> in
             group_subject__subject__name__exact=subject_name, is_lab__exact=True)
         if teacher_lecture_workloads:
             _configure_lecture_cells(teacher_lecture_workloads, row_index)
+            _set_thin_borders(row_index)
             row_index += 1
         if teacher_practice_workloads:
             _configure_cells(teacher_practice_workloads,
                              row_index, is_practice=True)
+            [_set_thin_borders(row) for row in range(
+                row_index, row_index + len(teacher_practice_workloads) + 1)]
             row_index += len(teacher_practice_workloads)
         if teacher_lab_workloads:
             _configure_cells(teacher_lab_workloads, row_index, is_lab=True)
+            [_set_thin_borders(row) for row in range(
+                row_index, row_index + len(teacher_lab_workloads) + 1)]
             row_index += len(teacher_lab_workloads)
     _merge_column(start_row_index, row_index)
     _configure_teacher_cell(teacher, start_row_index, row_index)
-    _set_borders(row_index)
+    _set_medium_bottom_borders(row_index)
     row_index += 1
     return row_index - start_row_index
 
 
-def _set_borders(row_index: int) -> None:
+def _set_center_alignment(row: int, col: int) -> None:
+    workload_sheet.cell(row=row, column=col).alignment = Alignment(
+        horizontal='center', vertical='center', wrap_text=True)
+
+
+def _set_thin_borders(row_index: int) -> None:
+    side = Side(border_style='thin')
+    for col in range(2, workload_sheet.max_column + 1):
+        workload_sheet.cell(row=row_index, column=col).border = Border(
+            bottom=side, top=side, left=side, right=side)
+        _set_center_alignment(row_index, col)
+
+
+def _set_medium_bottom_borders(row_index: int) -> None:
     other_side = Side(border_style='thin')
     bottom_side = Side(border_style='medium')
     for col in range(2, workload_sheet.max_column + 1):
         workload_sheet.cell(row=row_index, column=col).border = Border(
             bottom=bottom_side, top=other_side, left=other_side, right=other_side)
+        _set_center_alignment(row_index, col)
 
 
 def _merge_column(start_row_index: int, end_row_index: int) -> None:
