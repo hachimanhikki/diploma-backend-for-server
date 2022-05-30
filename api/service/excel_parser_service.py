@@ -84,8 +84,7 @@ def parse_schedule() -> list:
                 time = group_sheet.cell(row=row, column=2).value
                 if time is None:
                     break
-                subject_name = functions.formated(
-                    group_sheet.cell(row=row, column=3).value)
+                subject_name = group_sheet.cell(row=row, column=3).value
                 classroom = group_sheet.cell(row=row, column=4).value
                 type = group_sheet.cell(row=row, column=5).value
                 teacher = group_sheet.cell(row=row, column=6).value
