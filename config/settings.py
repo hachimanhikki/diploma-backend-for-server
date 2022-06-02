@@ -176,7 +176,13 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# Default primary key field type
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'codesenderdiploma2022@gmail.com'
+EMAIL_HOST_PASSWORD = 'fnjwcugzijmqomnz'
+EMAIL_USE_SSL = False
+# Default primary key field t'codesenderdiploma2022@gmail.com'ype
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

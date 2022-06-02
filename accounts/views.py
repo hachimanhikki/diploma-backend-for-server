@@ -5,6 +5,19 @@ from api.model.static_models import HTTPMethod
 from accounts.serializers import TeacherSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
 from config import settings
+from .utils import Util
+from django.contrib.sites.shortcuts import get_current_site
+from django.urls import reverse
+import random
+
+def generate_code():
+    number_list = [x for x in range(10)]
+    code_items = []
+    for i in range(5):
+        num = random.choice(number_list)
+        code_items.append(num)
+        code_str = ''.join(str(item) for item in code_items)
+    return code_str
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -27,6 +40,22 @@ class CustomAuthToken(ObtainAuthToken):
 
 
 @api_view([HTTPMethod.post])
+def verify_email(request):
+    if request.method == HTTPMethod.post:
+        data = request.data.dict()
+        print(data)
+        code = generate_code()
+        teacher_email = data['email']
+        teacher_name = data['first_name']
+        email_body = 'Greetings, ' + teacher_name + '. Use this code below to verify your email \n' + code
+        email_data = {'email_body' : email_body, 'email_subject' : 'Verify your email', 'email_to': teacher_email}
+        
+        Util.send_email(email_data)
+        data['code'] = code
+        return Response(data)
+
+
+@api_view([HTTPMethod.post])
 def registration_view(request):
     if request.method == HTTPMethod.post:
         serializer = TeacherSerializer(data=request.data)
@@ -38,10 +67,11 @@ def registration_view(request):
             data['kpi'] = teacher.kpi
             data['username'] = teacher.username
             data['email'] = teacher.email
-            token = Token.objects.get(user=teacher).key
+            data['code'] = code
             data['token'] = token
             data['is_head'] = teacher.is_admin
             data['department_name'] = teacher.department.name
         else:
             data = serializer.errors
         return Response(data)
+    
