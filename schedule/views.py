@@ -2,6 +2,7 @@ import os
 from django.conf import settings
 from django.http import HttpResponse
 import openpyxl
+from api.model.serializers import ScheduleSerializer
 from api.service.db_service import populate_schedule
 from api.service.save_service import is_file_exists, save_file
 from rest_framework.decorators import api_view, permission_classes
@@ -47,3 +48,31 @@ def download(request):
     response["Content-Disposition"] = f'attachment; filename="{file_name}"'
     wb.save(response)
     return response
+
+
+@api_view([HTTPMethod.get])
+def schedule_groups(request):
+    serializer = ScheduleSerializer()
+    groups = serializer.get_groups()
+    return Response(groups)
+
+
+@api_view([HTTPMethod.get])
+def schedule_teachers(request):
+    serializer = ScheduleSerializer()
+    teachers = serializer.get_teachers()
+    return Response(teachers)
+
+
+@api_view([HTTPMethod.get])
+def schedule_by_group(request):
+    serializer = ScheduleSerializer(
+        group_name=request.query_params['group_name'], by_group=True)
+    return Response(serializer.data)
+
+
+@api_view([HTTPMethod.get])
+def schedule_by_teacher(request):
+    serializer = ScheduleSerializer(
+        teacher_name=request.query_params['teacher_name'], by_teacher=True)
+    return Response(serializer.data)

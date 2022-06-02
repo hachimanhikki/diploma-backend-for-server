@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from accounts.models import Teacher
-from api.model.models import Group, GroupSubject, Subject, Workload
+from api.model.models import Group, GroupSubject, Schedule, Subject, Workload
 from django.db.models import F
 
 
@@ -274,3 +274,70 @@ class WorkloadSerializer(serializers.ModelSerializer):
             id__exact=self.validated_data['subject']['id'])
         self._save_workload(subject=subject, teacher=teacher)
         return None
+
+
+class ScheduleSerializer:
+    def __init__(self, group_name: str = '', teacher_name: str = '', by_group: bool = False, by_teacher: bool = False) -> None:
+        self.data = {}
+        self.group_name = group_name
+        self.teacher_name = teacher_name
+        if by_group:
+            self._serialize_by_group()
+        elif by_teacher:
+            self._serialize_by_teacher()
+
+    def get_groups(self) -> list:
+        groups = Schedule.objects.order_by('group_name').values_list(
+            'group_name', flat=True).distinct()
+        return groups
+
+    def get_teachers(self) -> list:
+        teachers = Schedule.objects.order_by('teacher_name').values_list(
+            'teacher_name', flat=True).distinct()
+        return teachers
+
+    def _set_initial_data(self) -> None:
+        self.data = {
+            'Monday': [],
+            'Tuesday': [],
+            'Wednesday': [],
+            'Thursday': [],
+            'Friday': [],
+            'Saturday': [],
+            'time_ranges': []
+        }
+
+    def _make_info(self, schedule, start_time, end_time) -> dict:
+        return {
+            'start_time': start_time,
+            'end_time': end_time,
+            'group_name': schedule.group_name,
+            'teacher_name': schedule.teacher_name,
+            'subject_name': schedule.subject_name,
+            'classroom': schedule.classroom,
+            'is_lecture': schedule.is_lecture,
+            'is_practice': schedule.is_practice,
+            'is_lab': schedule.is_lab
+        }
+
+    def _serialize_by_group(self) -> None:
+        self._set_initial_data()
+        schedules = Schedule.objects.filter(
+            group_name__exact=self.group_name).order_by('time')
+        self._populate_data(schedules)
+
+    def _serialize_by_teacher(self) -> None:
+        self._set_initial_data()
+        schedules = Schedule.objects.filter(
+            teacher_name__exact=self.teacher_name).order_by('time')
+        self._populate_data(schedules)
+
+    def _populate_data(self, schedules):
+        for schedule in schedules:
+            if schedule.week_day in self.data:
+                start_time, end_time = schedule.time.split("-")
+                info = self._make_info(schedule, start_time, end_time)
+                self.data[schedule.week_day].append(info)
+                times = {'start_time': start_time, 'end_time': end_time}
+                if times not in self.data['time_ranges']:
+                    self.data['time_ranges'].append(times)
