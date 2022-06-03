@@ -47,6 +47,8 @@ class TeacherGETSerializer:
                 'first_name': teacher.first_name,
                 'second_name': teacher.second_name,
                 'kpi': teacher.kpi,
+                'position': teacher.position,
+                'one_rate': teacher.one_rate,
                 'email': teacher.email,
                 'department': teacher.department.name,
                 'total_hour': teacher.total_hour
