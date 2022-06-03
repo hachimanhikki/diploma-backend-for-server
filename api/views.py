@@ -21,4 +21,5 @@ def check(request):
     # create_excel_workload()
     # populate_schedule()
     # create_excel_workload()
+    # Teacher.objects.get(id=7).delete()
     return Response({'success': 12})

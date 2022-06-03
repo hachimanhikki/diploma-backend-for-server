@@ -9,7 +9,7 @@ class TeacherSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
         fields = ('first_name', 'second_name', 'username',
-                  'email', 'password', "department_name", 'kpi')
+                  'email', 'password', "department_name", 'kpi', 'position', 'one_rate')
         extra_kwargs = {
             'password': {'write_only': True}
         }
@@ -20,8 +20,8 @@ class TeacherSerializer(serializers.ModelSerializer):
             username=self.validated_data['username'],
             first_name=self.validated_data['first_name'],
             second_name=self.validated_data['second_name'],
-            position="Преподователь",
-            one_rate=560,
+            position=self.validated_data['position'],
+            one_rate=self.validated_data['one_rate'],
             load=1.0,
             kpi=self.validated_data['kpi'],
         )
