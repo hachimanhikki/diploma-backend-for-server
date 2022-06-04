@@ -5,7 +5,7 @@ class HTTPMethod:
     delete = "DELETE"
 
 
-class KPI:
+class Positions:
     senior_lector = "Senior-lector"
     associate_professor = "Associate professor"
     professor_assistant = "Professor assistant"

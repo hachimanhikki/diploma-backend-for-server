@@ -9,6 +9,8 @@ from api.model.static_models import HTTPMethod
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
+from api.service.excel_parser_service import parse_groups, parse_subjects
+
 
 @api_view([HTTPMethod.get])
 # @permission_classes([IsAuthenticated])
@@ -22,4 +24,6 @@ def check(request):
     # populate_schedule()
     # create_excel_workload()
     # Teacher.objects.get(id=7).delete()
+    # populate_database()
+    # parse_groups()
     return Response({'success': 12})

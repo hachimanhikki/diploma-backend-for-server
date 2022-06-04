@@ -16,16 +16,14 @@ import openpyxl
 @api_view([HTTPMethod.post])
 @permission_classes([IsAuthenticated])
 def upload(request):
-    if request.method == HTTPMethod.post:
-        try:
-            save_file(request.FILES[settings.FLOWS_FILE_NAME], True)
-            populate_database()
-            return Response({'success': True})
-        except IncorrectFileType as e:
-            return Response({'message': e.message}, status=e.status)
-        except Exception as e:
-            return Response({'message': "Error"}, status=400)
-    return Response({'message': 'File is not uploaded'}, status=500)
+    try:
+        save_file(request.FILES[settings.FLOWS_FILE_NAME], True)
+        populate_database()
+        return Response({'success': True})
+    except IncorrectFileType as e:
+        return Response({'message': e.message}, status=e.status)
+    except Exception as e:
+        return Response({'message': "Error"}, status=400)
 
 
 @api_view([HTTPMethod.get])

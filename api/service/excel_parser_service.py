@@ -7,15 +7,15 @@ import api.service.functions as functions
 import collections
 
 
-wb = course_sheet = course_educational_programs_count = group_sheet = schedule_wb = None
+wb = course_sheet = group_sheet = schedule_wb = None
+course_educational_programs_count = [0, 0, 0, 0]
 
 
 def set_workload() -> None:
-    global wb, course_sheet, course_educational_programs_count, group_sheet
+    global wb, course_sheet, group_sheet
     wb = openpyxl.load_workbook(os.path.join(
         settings.MEDIA_ROOT, 'all_data.xlsx'), data_only=True)
     course_sheet = [0, wb['1 курс'], wb['2 курс'], wb['3 курс']]
-    course_educational_programs_count = [0, 11, 9, 8]
     group_sheet = wb['Группы']
 
 
@@ -39,7 +39,9 @@ def parse_subjects(course: int) -> list:
 
 
 def parse_groups() -> list:
+    global course_educational_programs_count
     groups = []
+    group_codes = collections.defaultdict(set)
     for i in range(2, group_sheet.max_row + 1):
         group = Group()
         group.name = group_sheet.cell(row=i, column=1).value
@@ -48,7 +50,12 @@ def parse_groups() -> list:
         group.number_of_students = functions.clear_int(
             group_sheet.cell(row=i, column=3).value)
         group.code = group.name.split('-')[0]
+        group_codes[group.course].add(group.code)
         groups.append(group)
+
+    for group_course, group_code in group_codes.items():
+        course_educational_programs_count[group_course] = len(group_code)
+
     return groups
 
 

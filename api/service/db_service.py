@@ -1,4 +1,4 @@
-from api.model.static_models import KPI
+from api.model.static_models import Positions
 from api.service.excel_parser_service import set_schedule_workload, set_workload, parse_groups, parse_groups_for_subject, parse_subjects, parse_schedule
 from config.settings import DepartmentEnum
 from api.model.models import Department, Group, Subject, Workload, Schedule
@@ -10,12 +10,12 @@ courses = [1, 2, 3]
 
 def populate_database() -> None:
     set_workload()
-    # if not Department.objects.exists():
-    #     _populate_departments()
-    # _delete_all_existing()
-    # _populate_groups()
-    # _populate_all_courses_subjects()
-    # _connect_all_group_subject()
+    if not Department.objects.exists():
+        _populate_departments()
+    _delete_all_existing()
+    _populate_groups()
+    _populate_all_courses_subjects()
+    _connect_all_group_subject()
 
 
 def populate_schedule() -> None:
@@ -81,8 +81,8 @@ def groups_statistic():
 
 def teacher_statistic():
     res = {}
-    for kpi in KPI.all:
-        res[kpi] = Teacher.objects.filter(kpi__exact=kpi)
+    for pos in Positions.all:
+        res[pos] = Teacher.objects.filter(kpi__exact=pos)
     return res
 
 
@@ -91,6 +91,8 @@ def _delete_all_existing() -> None:
         Group.objects.all().delete()
     if Subject.objects.exists():
         Subject.objects.all().delete()
+    if Teacher.objects.exists():
+        Teacher.objects.all().update(total_hour=0)
 
 
 def _populate_departments() -> None:
