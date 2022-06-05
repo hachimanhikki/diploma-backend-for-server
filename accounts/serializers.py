@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from api.model.models import Department
 from accounts.models import Teacher
+from rest_framework.authtoken.models import Token
 
 
 class TeacherSerializer(serializers.ModelSerializer):
@@ -35,22 +36,31 @@ class TeacherSerializer(serializers.ModelSerializer):
 
 
 class TeacherGETSerializer:
-    def __init__(self, teachers: list):
-        self.data = []
-        self.teachers = teachers
-        self._serialize_teachers()
+    def __init__(self, teacher: Teacher = None, teachers: list = None, many: bool = False):
+        self.data = {}
+        if many:
+            self.data = self._serialize_teachers(teachers)
+        else:
+            self.data = self._serialize_teacher(teacher)
 
-    def _serialize_teachers(self):
-        for teacher in self.teachers:
-            res = {
-                'username': teacher.username,
-                'first_name': teacher.first_name,
-                'second_name': teacher.second_name,
-                'kpi': teacher.kpi,
-                'position': teacher.position,
-                'one_rate': teacher.one_rate,
-                'email': teacher.email,
-                'department': teacher.department.name,
-                'total_hour': teacher.total_hour
-            }
-            self.data.append(res)
+    def _serialize_teacher(self, teacher: Teacher) -> dict:
+        return {
+            'username': teacher.username,
+            'first_name': teacher.first_name,
+            'second_name': teacher.second_name,
+            'kpi': teacher.kpi,
+            'position': teacher.position,
+            'one_rate': teacher.one_rate,
+            'email': teacher.email,
+            'department_name': teacher.department.name,
+            'load': teacher.load,
+            'total_hour': teacher.total_hour,
+            'is_head': teacher.is_admin,
+            'token': Token.objects.get(user=teacher).key
+        }
+
+    def _serialize_teachers(self, teachers) -> list:
+        res = []
+        for teacher in teachers:
+            res.append(self._serialize_teacher(teacher))
+        return res

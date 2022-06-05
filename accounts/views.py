@@ -1,11 +1,13 @@
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.authtoken.models import Token
+from accounts.models import Teacher
 from api.model.static_models import HTTPMethod
-from accounts.serializers import TeacherSerializer
+from accounts.serializers import TeacherGETSerializer, TeacherSerializer
 from rest_framework.authtoken.views import ObtainAuthToken
 from .utils import Util
 import random
+from rest_framework.permissions import IsAuthenticated
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -13,20 +15,10 @@ class CustomAuthToken(ObtainAuthToken):
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request})
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            'first_name': user.first_name,
-            'second_name': user.second_name,
-            'kpi': user.kpi,
-            'position': user.position,
-            'one_rate': user.one_rate,
-            'username': user.username,
-            'token': token.key,
-            'email': user.email,
-            'is_head': user.is_admin,
-            'department_name': user.department.name
-        })
+        teacher = serializer.validated_data['user']
+        Token.objects.get_or_create(user=teacher)
+        serializer_get = TeacherGETSerializer(teacher=teacher)
+        return Response(serializer_get.data)
 
 
 @api_view([HTTPMethod.post])
@@ -51,16 +43,40 @@ def registration_view(request):
     data = {}
     if serializer.is_valid():
         teacher = serializer.save()
-        data['first_name'] = teacher.first_name
-        data['second_name'] = teacher.second_name
-        data['kpi'] = teacher.kpi
-        data['position'] = teacher.position
-        data['one_rate'] = teacher.one_rate
-        data['username'] = teacher.username
-        data['email'] = teacher.email
-        data['token'] = Token.objects.get(user=teacher).key
-        data['is_head'] = teacher.is_admin
-        data['department_name'] = teacher.department.name
+        serializer_get = TeacherGETSerializer(teacher=teacher)
+        data = serializer_get.data
     else:
         data = serializer.errors
     return Response(data)
+
+
+@api_view([HTTPMethod.post])
+@permission_classes([IsAuthenticated])
+def change_kpi(request):
+    teacher = Teacher.objects.get(
+        username__exact=request.data['teacher_username'])
+    teacher.kpi = request.data['kpi']
+    teacher.one_rate = request.data['one_rate']
+    teacher.save()
+    serializer = TeacherGETSerializer(teacher=teacher)
+    return Response(serializer.data)
+
+
+@api_view([HTTPMethod.post])
+@permission_classes([IsAuthenticated])
+def change_load(request):
+    teacher = Teacher.objects.get(
+        username__exact=request.data['teacher_username'])
+    teacher.load = request.data['load']
+    teacher.save()
+    serializer = TeacherGETSerializer(teacher=teacher)
+    return Response(serializer.data)
+
+
+@api_view([HTTPMethod.post])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    teacher = Teacher.objects.get(
+        username__exact=request.data['teacher_username'])
+    # request.data['password']
+    return Response({'success': True})

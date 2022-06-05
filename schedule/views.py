@@ -43,7 +43,6 @@ def download(request):
     if not is_file_exists(file_name):
         return Response({'message': FileDoesntExists.message}, status=FileDoesntExists.status)
     wb = openpyxl.load_workbook(os.path.join(settings.MEDIA_ROOT, file_name))
-    print(wb)
     response = HttpResponse(content_type='application/vnd.ms-excel')
     response["Content-Disposition"] = f'attachment; filename="{file_name}"'
     wb.save(response)

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from accounts.models import Teacher
+from accounts.serializers import TeacherGETSerializer
 from api.model.models import Group, GroupSubject, Schedule, Subject, Workload
 from django.db.models import F
 
@@ -178,15 +179,8 @@ class WorkloadGETSerializer:
     def _serialize_by_teacher(self, teacher_username: str) -> dict:
         res = {}
         teacher = Teacher.objects.get(username__exact=teacher_username)
-        res['teacher'] = {
-            'username': teacher.username,
-            'first_name': teacher.first_name,
-            'second_name': teacher.second_name,
-            'kpi': teacher.kpi,
-            'email': teacher.email,
-            'department': teacher.department.name,
-            'total_hour': teacher.total_hour
-        }
+        serializer = TeacherGETSerializer(teacher=teacher)
+        res['teacher'] = serializer.data
         res['lec'] = self._groups_subjects_get_by(lec=True, teacher=teacher)
         res['prac'] = self._groups_subjects_get_by(lec=False, teacher=teacher)
         return res

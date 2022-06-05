@@ -71,7 +71,7 @@ def teacher_statistics(request):
     teacher_stat = teacher_statistic()
     for kpi, teachers in teacher_stat.items():
         total_count = len(teachers)
-        serializer = TeacherGETSerializer(teachers)
+        serializer = TeacherGETSerializer(teachers=teachers, many=True)
         response[kpi] = {
             "total_count": total_count,
             "teachers": serializer.data
