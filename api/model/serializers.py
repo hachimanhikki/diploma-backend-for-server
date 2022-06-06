@@ -119,17 +119,25 @@ class GroupSubjectSerializer:
 
         if self.by_subject:
             subject = groups_subjects[0].subject
-            groups = []
-            taken_groups = Workload.objects.filter(
-                group_subject__subject__exact=subject).values_list('group_subject__group')
-            taken_groups_ins = [Group.objects.get(
-                name__exact=taken_group[0]) for taken_group in taken_groups]
+            lec_groups = []
+            prac_groups = []
+            lec_taken_groups = Workload.objects.filter(
+                group_subject__subject__exact=subject, is_lecture__exact=True).values_list('group_subject__group')
+            prac_taken_groups = Workload.objects.filter(
+                group_subject__subject__exact=subject, is_practice__exact=True).values_list('group_subject__group')
+            lec_taken_groups_ins = [Group.objects.get(
+                name__exact=taken_group[0]) for taken_group in lec_taken_groups]
+            prac_taken_groups_ins = [Group.objects.get(
+                name__exact=taken_group[0]) for taken_group in prac_taken_groups]
             for group_subject in groups_subjects:
-                if group_subject.group not in taken_groups_ins:
-                    groups.append(GroupSerializer(group_subject.group).data)
+                if group_subject.group not in lec_taken_groups_ins:
+                    lec_groups.append(GroupSerializer(group_subject.group).data)
+                if group_subject.group not in prac_taken_groups_ins:
+                    prac_groups.append(GroupSerializer(group_subject.group).data)
+
             res = {
                 'subject': SubjectSerializer(subject, exclude=('groups')).data,
-                'groups': groups,
+                'groups': {'prac': prac_groups, 'lec': lec_groups},
                 'trimester': trimester,
             }
         elif self.by_group:
