@@ -131,15 +131,28 @@ class GroupSubjectSerializer:
                 name__exact=taken_group[0]) for taken_group in prac_taken_groups]
             for group_subject in groups_subjects:
                 if group_subject.group not in lec_taken_groups_ins:
-                    lec_groups.append(GroupSerializer(group_subject.group).data)
+                    lec_groups.append(GroupSerializer(
+                        group_subject.group).data)
                 if group_subject.group not in prac_taken_groups_ins:
-                    prac_groups.append(GroupSerializer(group_subject.group).data)
+                    prac_groups.append(GroupSerializer(
+                        group_subject.group).data)
+
+            lectures = []
+            if subject.lecture_count:
+                dsitributed_lec_count = self._distribute_lecture_teachers(
+                    len(lec_groups), subject.lecture_count)
+                prev_count = 0
+                for count in dsitributed_lec_count:
+                    lectures.append(
+                        lec_groups[prev_count:(prev_count + count)])
+                    prev_count += count
 
             res = {
                 'subject': SubjectSerializer(subject, exclude=('groups')).data,
-                'groups': {'prac': prac_groups, 'lec': lec_groups},
+                'groups': {'prac': prac_groups, 'lec': lectures},
                 'trimester': trimester,
             }
+
         elif self.by_group:
             group = groups_subjects[0].group
             res = {
@@ -149,6 +162,14 @@ class GroupSubjectSerializer:
             }
 
         return res
+
+    def _distribute_lecture_teachers(self, groups_count: int, lecture_count: int) -> list:
+        return self._distribute_groups_teachers(groups_count, lecture_count)
+
+    def _distribute_groups_teachers(self, count_1: int, count_2: int) -> list:
+        base, extra = divmod(count_1, count_2)
+        result = [base + (i < extra) for i in range(count_2)]
+        return result
 
 
 class WorkloadGETSerializer:
